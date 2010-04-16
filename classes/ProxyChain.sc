@@ -1,11 +1,13 @@
 ProxyChain {
 
-	classvar <allSources;
-
+	classvar <allSources; 
+	classvar <all;
+	
 	var <slotNames, <slotsInUse, <proxy, <sources;
 
 	*initClass {
 		allSources = ();
+		all = ();
 	}
 
 	*add { |...args|
@@ -13,31 +15,41 @@ ProxyChain {
 	}
 
 	*from { arg proxy, slotNames = #[];
-		^super.new.initProxy(proxy, slotNames)
+		^super.new.init(proxy, slotNames)
 	}
+	
+	key { ^all.findKeyForValue(this) }
+	
+	*new { arg key, slotNames, numChannels, server; 
+		var proxy;
+		var res = all.at(key);
+		if(res.isNil) {
+			proxy = NodeProxy.audio(server ? Server.default, numChannels);
+			res = this.from(proxy, slotNames);
+			if (key.notNil) { all.put(key, res) };
+		};
+		
+		if(slotNames.notNil) { res.slotNames_(slotNames) }
 
-	*new { arg numChannels=2, slotNames = #[], server;
-		^super.new.init(numChannels, slotNames, server);
+		^res
 	}
+		
+	init { |argProxy, argSlotNames|
 
-	initProxy { |argProxy, argSlotNames|
 		slotNames = Order.new;
 		slotsInUse = Order.new;
 		sources = ();
 		sources.parent_(allSources);
 
-		argSlotNames.do { |name, i| slotNames.put(i + 1 * 10, name) };
 		proxy = argProxy;
+		if (proxy.key.notNil) { all.put(proxy.key, this) };
+		
+		this.slotNames_(argSlotNames);
 	}
-
-	init { |argNumChans, argSlotNames, server|
-		slotNames = Order.new;
-		slotsInUse = Order.new;
-		sources = ();
-		sources.parent_(allSources);
-
+	
+	slotNames_ { |argSlotNames| 
+		slotNames.clear;
 		argSlotNames.do { |name, i| slotNames.put(i + 1 * 10, name) };
-		proxy = NodeProxy.audio(server ? Server.default, argNumChans);
 	}
 
 	add { |key, wet, func| 	// assume the index exists
@@ -106,12 +118,12 @@ ProxyChain {
 
 
 		// JIT gui support
-	gui { 	|name, buttonList, nSliders=16, win|
-		^ProxyChainGui(this, name, buttonList, nSliders, win)
+	gui { |numItems = 16, buttonList, parent, bounds|
+		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList);
 	}
 
+		// old NodeProxyEditor 
 	informEditor { |ed|
-			// this should be more specific to be more efficient.
 		slotNames.do { |name, i| ed.replaceKeys.put(("wet" ++ i).asSymbol, name) };
 		slotNames.do { |name, i| ed.replaceKeys.put(("mix" ++ i).asSymbol, name) };
 	}
