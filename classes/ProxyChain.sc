@@ -121,17 +121,16 @@ ProxyChain {
 	gui { |numItems = 16, buttonList, parent, bounds|
 		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList);
 	}
-
+		// this is probably not needed anymore
 		// old NodeProxyEditor 
 	informEditor { |ed|
 		slotNames.do { |name, i| ed.replaceKeys.put(("wet" ++ i).asSymbol, name) };
 		slotNames.do { |name, i| ed.replaceKeys.put(("mix" ++ i).asSymbol, name) };
 	}
-
-	makeEdit { |name, nSliders=24, win, comp|
-		var ed = NodeProxyEditor(proxy, nSliders, win, comp);
+		
+	makeEdit { |name, nSliders=24, parent, bounds|
+		var ed = NdefGui(proxy, nSliders, parent, bounds);
 		this.informEditor(ed);
-		if (win.isNil) { ed.w.name_ ( "Edit" + name) };
 		^ed
 	}
 }

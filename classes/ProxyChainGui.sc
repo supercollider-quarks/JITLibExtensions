@@ -20,7 +20,7 @@ ProxyChainGui : JITGui {
 		} { 
 			defPos = skin.margin;
 		};
-		minSize = 550 @ (numItems * skin.buttonHeight + (skin.headHeight * 2));
+		minSize = 510 @ (numItems * skin.buttonHeight + (skin.headHeight * 2));
 	//	"minSize: %\n".postf(minSize);
 	}
 	
@@ -31,9 +31,7 @@ ProxyChainGui : JITGui {
 		// "PCGui:makeViews: options are %\n\n".postf(options);
 		
 		options = options ?? { if(object.notNil) { object.slotNames.asArray } };
-		
-		options.postcs;
-	
+			
 		guiFuncs =  (
 			btlabel: { |but, name| but.states_([[name, Color.black, Color(1, 0.5, 0)]]) },
 			label: { |but, name| but.states_([[name, Color.white, Color(1, 0.5, 0)]]) },
@@ -50,9 +48,9 @@ ProxyChainGui : JITGui {
 			}
 		);
 
-		butZone = CompositeView(zone, Rect(0,0, 150, bounds.height - (skin.margin.y * 2)));
+		butZone = CompositeView(zone, Rect(0,0, 110, bounds.height - (skin.margin.y * 2)));
 		butZone.addFlowLayout;
-		buttons = numItems.collect { Button.new(butZone, Rect(0,0, 140, skin.buttonHeight)).states_([["-"]]); };
+		buttons = numItems.collect { Button.new(butZone, Rect(0,0, 100, skin.buttonHeight)).states_([["-"]]); };
 		
 		this.buttons_(options.asArray);
 
@@ -133,8 +131,8 @@ ProxyChainGui : JITGui {
 			};
 			
 			object.slotNames.do { |name, i|
-				editGui.addReplaceKey(("wet" ++ i).asSymbol.postcs, name, \amp.asSpec.postcs); 
-				editGui.addReplaceKey(("mix" ++ i).asSymbol.postcs, name, \amp.asSpec.postcs); 
+				editGui.addReplaceKey(("wet" ++ i).asSymbol, name, \amp.asSpec); 
+				editGui.addReplaceKey(("mix" ++ i).asSymbol, name, \amp.asSpec); 
 			};
 		};
 				
@@ -147,3 +145,4 @@ ProxyChainGui : JITGui {
 		prevState = newState;
 	}
 }
+
