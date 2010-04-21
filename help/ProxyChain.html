@@ -14,11 +14,10 @@ p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco}
 p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #a91616}
 p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #0014bc}
 p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #307109}
-p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #000000}
-p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #008417}
-p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd0b0b}
-p.p11 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #307113}
-p.p12 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #1e21bc}
+p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #008417}
+p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #cd0b0b}
+p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #307113}
+p.p11 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Monaco; color: #1e21bc}
 span.s1 {font: 18.0px Helvetica}
 span.s2 {font: 9.0px Monaco}
 span.s3 {color: #000000}
@@ -38,6 +37,12 @@ span.Apple-tab-span {white-space:pre}
 <p class="p1">ProxyChain keeps a global repertoire of sound functions by name.<span class="Apple-converted-space"> </span></p>
 <p class="p1">A ProxyChain has an ordered collection of sound functions and uses a nodeproxy<span class="Apple-converted-space"> </span></p>
 <p class="p1">to add or remove the sound functions to/from the signal chain individually, by name.</p>
+<p class="p3"><br></p>
+<p class="p1">Like Ndef, Pdef, Tdef, ProxyChain keeps all named instances in a class variable "all".</p>
+<p class="p1">ProxyChain(&lt;name&gt;) accesses a ProxyChain by name,<span class="Apple-converted-space"> </span></p>
+<p class="p1">ProxyChain(&lt;name&gt;, slotNames, ... ) puts a new instance there.<span class="Apple-converted-space"> </span></p>
+<p class="p3"><br></p>
+<p class="p2"><br></p>
 <p class="p2"><br></p>
 <p class="p2"><br></p>
 <p class="p2"><br></p>
@@ -121,11 +126,11 @@ span.Apple-tab-span {white-space:pre}
 <p class="p2"><br></p>
 <p class="p5"><span class="s3"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// the functions can be sources (func, \mix -&gt; func)<span class="Apple-converted-space"> </span></p>
 <p class="p5"><span class="s3"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// or filters (\filter -&gt; func, \filterIn -&gt; func)</p>
-<p class="p8">(</p>
-<p class="p9"><span class="s3">c = </span><span class="s6">ProxyChain</span><span class="s3">(</span>\alpha<span class="s3">, [</span>\dust<span class="s3">, </span>\ringmod<span class="s3">, </span>\dist<span class="s3">, </span>\riseComb5<span class="s3">, </span>\test<span class="s3">]);</span></p>
-<p class="p10"><span class="s3">c.play;<span class="Apple-tab-span">	</span></span>// play the proxy</p>
-<p class="p10"><span class="s3">g = c.gui(12);<span class="Apple-tab-span">	</span></span>// make a gui for it with 12 slots</p>
-<p class="p8">)</p>
+<p class="p4">(</p>
+<p class="p8"><span class="s3">c = </span><span class="s6">ProxyChain</span><span class="s3">(</span>\alpha<span class="s3">, [</span>\dust<span class="s3">, </span>\ringmod<span class="s3">, </span>\dist<span class="s3">, </span>\riseComb5<span class="s3">, </span>\test<span class="s3">]);</span></p>
+<p class="p9"><span class="s3">c.play;<span class="Apple-tab-span">	</span></span>// play the proxy</p>
+<p class="p9"><span class="s3">g = c.gui(12);<span class="Apple-tab-span">	</span></span>// make a gui for it with 12 slots</p>
+<p class="p4">)</p>
 <p class="p2"><br></p>
 <p class="p2"><br></p>
 <p class="p5"><span class="s3"><span class="Apple-tab-span">	</span></span>// these methods are passed through to the proxy:</p>
@@ -138,9 +143,9 @@ span.Apple-tab-span {white-space:pre}
 <p class="p1"><b><span class="Apple-tab-span">	</span>*from(proxy, slotNames)</b><span class="Apple-tab-span">	</span>make a proxychain from an existing proxy.</p>
 <p class="p3"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p4"><span class="s7">Ndef</span>(<span class="s8">\bla</span>).ar(2);</p>
-<p class="p11"><span class="s7">ProxyChain</span><span class="s3">.from(</span><span class="s7">Ndef</span><span class="s3">(</span>\bla<span class="s3">), [</span>\dust<span class="s3">, </span>\ringmod<span class="s3">, </span>\dist<span class="s3">, </span>\riseComb5<span class="s3">, </span>\test<span class="s3">]);</span></p>
-<p class="p12">ProxyChain(\bla).play;</p>
-<p class="p12">ProxyChain(\bla).add(\dust);</p>
+<p class="p10"><span class="s7">ProxyChain</span><span class="s3">.from(</span><span class="s7">Ndef</span><span class="s3">(</span>\bla<span class="s3">), [</span>\dust<span class="s3">, </span>\ringmod<span class="s3">, </span>\dist<span class="s3">, </span>\riseComb5<span class="s3">, </span>\test<span class="s3">]);</span></p>
+<p class="p11">ProxyChain(\bla).play;</p>
+<p class="p11">ProxyChain(\bla).add(\dust);</p>
 <p class="p3"><br></p>
 <p class="p3"><br></p>
 <p class="p1"><b><span class="Apple-tab-span">	</span>add(key, wet)</b><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>add a sound or filter function, wet is dry/wet balance</p>

@@ -28,7 +28,7 @@ ProxyChainGui : JITGui {
 		
 		namedButtons = ();
 		
-		"PCGui:makeViews: options are %\n\n".postf(options);
+		// "PCGui:makeViews: options are %\n\n".postf(options);
 		
 		options = options ?? { if(object.notNil) { object.slotNames.asArray } };
 		
@@ -121,20 +121,20 @@ ProxyChainGui : JITGui {
 		};
 		
 		if (newState[\slotNames] != prevState[\slotNames]) { 
-			"new slotnames: ".post; newState[\slotNames].postcs; 
+		//	"new slotnames: ".post; newState[\slotNames].postcs; 
 			
 			namedButtons = (); 
 			buttons.do { |but| 
 				var butname = but.states[0][0].asString.drop(2).drop(-2).asSymbol;
-				[\butname, butname].postcs;
+			//	[\butname, butname].postcs;
 				if (newState[\slotNames].includes(butname)) { 
 					namedButtons.put(butname, but);
 				};
 			};
 			
 			object.slotNames.do { |name, i|
-				editGui.addReplaceKey(("wet" ++ i).asSymbol, name); 
-				editGui.addReplaceKey(("mix" ++ i).asSymbol, name); 
+				editGui.addReplaceKey(("wet" ++ i).asSymbol.postcs, name, \amp.asSpec.postcs); 
+				editGui.addReplaceKey(("mix" ++ i).asSymbol.postcs, name, \amp.asSpec.postcs); 
 			};
 		};
 				
