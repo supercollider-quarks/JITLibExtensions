@@ -130,7 +130,7 @@ ProxyChain {
 		
 	makeEdit { |name, nSliders=24, parent, bounds|
 		var ed = NdefGui(proxy, nSliders, parent, bounds);
-		this.informEditor(ed);
+	//	this.informEditor(ed);
 		^ed
 	}
 }

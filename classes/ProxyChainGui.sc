@@ -96,10 +96,10 @@ ProxyChainGui : JITGui {
 	}
 	
 	checkUpdate { 
-		var newState = this.getState; 
-		
+		var newState = this.getState;
 		
 		if (newState[\object].isNil) { 
+			this.name_('none');
 			editGui.object_(object);
 			butZone.enabled_(false); 
 			
@@ -110,10 +110,10 @@ ProxyChainGui : JITGui {
 		if (newState == prevState) { ^this };
 		
 		if (newState[\object] != prevState[\object]) { 
+			this.name_(object.key);
 			butZone.enabled_(true);
 			editGui.object_(object.proxy);
-			
-			if (object.proxy.key.isNil) { editGui.name_(object.key ? "_none_") };
+			editGui.name_(object.key);
 		} { 
 			editGui.checkUpdate;
 		};
