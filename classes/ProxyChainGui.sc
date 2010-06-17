@@ -54,8 +54,10 @@ ProxyChainGui : JITGui {
 		
 		this.buttons_(options.asArray);
 
-		editGui = NdefGui(nil, numItems, zone);
+		this.makeEditGui;
 	}
+	
+	makeEditGui { editGui = NdefGui(nil, numItems, zone); }
 
 	buttons_ { |specs| 
 		
@@ -143,6 +145,18 @@ ProxyChainGui : JITGui {
 		};
 
 		prevState = newState;
+	}
+}
+
+MasterFXGui : ProxyChainGui { 
+	
+	name_ { |name| 
+		if (hasWindow) { parent.name_(name.asString) };
+	}
+		
+	makeEditGui { 
+		var editGuiOptions = [ 'CLR', 'reset', 'doc', 'fade', 'wake', 'end', 'pausR', 'sendR' ];
+		editGui = NdefGui(nil, numItems, zone, bounds: 400@0, options: editGuiOptions); 
 	}
 }
 

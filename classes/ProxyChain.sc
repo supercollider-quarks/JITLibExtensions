@@ -118,8 +118,8 @@ ProxyChain {
 
 
 		// JIT gui support
-	gui { |numItems = 16, buttonList, parent, bounds|
-		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList);
+	gui { |numItems = 16, buttonList, parent, bounds, isMaster = false|
+		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList, isMaster);
 	}
 		// this is probably not needed anymore
 		// old NodeProxyEditor 
