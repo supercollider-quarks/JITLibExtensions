@@ -48,6 +48,8 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3">}).play;</p>
 <p class="p3">)</p>
 <p class="p2"><br></p>
+<p class="p3">Tdef(\a).stop</p>
+<p class="p2"><br></p>
 <p class="p4"><span class="s4">z = </span>TdefPreset<span class="s4">(</span>Tdef<span class="s4">(</span><span class="s5">\a)</span><span class="s4">).dump;</span></p>
 <p class="p3"><span class="s6">TdefPreset</span>.all[\a].dump.settings;</p>
 <p class="p3">z.getFromProxy</p>
@@ -83,6 +85,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3">Tdef(\a).envir</p>
 <p class="p2"><br></p>
 <p class="p2"><br></p>
+<p class="p2"><br></p>
 <p class="p3">(</p>
 <p class="p5">// morphing and randomizing settings require specs to exist!</p>
 <p class="p6"><br></p>
@@ -90,10 +93,12 @@ span.Apple-tab-span {white-space:pre}
 <p class="p3">Spec.add(\dt, [0.01, 100, \exp]);</p>
 <p class="p2"><br></p>
 <p class="p3">w = Window("TdefPreset test", Rect(20, 300, 420, 400)).front;</p>
+<p class="p3">w.addFlowLayout;</p>
 <p class="p3">g = <span class="s6">ProxyPresetGui</span>(z, 8, w);</p>
 <p class="p3">t = TdefGui(Tdef(\a), 8, w, 400@0);</p>
 <p class="p3">)</p>
 <p class="p2"><br></p>
+<p class="p3">z.morph(0.5, \ada, \bebe);</p>
 <p class="p2"><br></p>
 <p class="p3">z.setProxy(<span class="s5">\ada</span>);</p>
 <p class="p3">z.setProxy(<span class="s5">\bebe</span>);</p>
