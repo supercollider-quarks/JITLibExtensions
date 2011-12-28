@@ -127,7 +127,7 @@ HistoryDispatch : EnvirDispatch {
 		var index, timeIndex;
 		var hist = histories[key];
 
-		if(hist.isNil) { ^false };
+		if(hist.isNil) { ^nil };
 		index = this.findObjectTimeIndex(key, envir.envir.at(key).source);
 		timeIndex = this.findTimeIndex(key, time);
 		// [index, timeIndex, hist[timeIndex + 1]].postln;
@@ -163,7 +163,7 @@ HistoryDispatch : EnvirDispatch {
 		};
 		^str
 	}
-	/*
+	
 	// not yet implemented..
 	loadFromHistory { |path|
 		var file, str, delim, times;
@@ -180,14 +180,16 @@ HistoryDispatch : EnvirDispatch {
 		times = str.collect { |x|
 			History.getTimeFromString(x);
 		};
-		^this.notYetImplemented(thisMethod);
-		// uups, this is not that easy. we need to parse out the proxy assignments.
-		// "~*=".matchRegexp(x) // etc..
-
-
+		fork { // balance load a bit...
+			times.do { |time, i|
+				this.setTime(time);
+				str.at(i).postln.interpret;
+				0.2.wait; // for now
+			};
+		};
 
 	}
-	*/
+	
 
 	document { arg title="";	// platform dependent ...
 		var docTitle;

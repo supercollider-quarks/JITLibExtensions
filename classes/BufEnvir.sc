@@ -102,6 +102,16 @@ BufEnvir : EnvironmentRedirect {
 	rateScale { arg key;
 		^BufRateScale.kr(this.at(key).bufnum)
 	}
+	
+	// todo: test!
+	rec { arg in, key, dur, offset = 0.0, recLevel=1.0, preLevel=0.0, 
+						run=1.0, loop=1.0, trigger=1.0, doneAction=0;
+		var numChannels = in.asArray.size;
+		if(dur.notNil or: { numChannels != this.at(key).numChannels }) { 
+				this.alloc(key, dur ? 1.0 * server.sampleRate, numChannels) 
+		};
+		^RecordBuf.ar(in, this.at(key), offset, run, recLevel, preLevel, loop, trigger, doneAction)
+	}
 
 }
 
