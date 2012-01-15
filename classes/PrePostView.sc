@@ -13,16 +13,6 @@ PrePostView {
 		
 		^this.new(sliderZone, nil, slider).monitorGui_(monitorGui);
 	}
-		// probably obsolete
-	*forNdefGui { |ndefGui|
-		^this.forMonitor(ndefGui.monitorGui);
-	}	
-		// probably obsolete
-	*forMixer { |mixer|
-		^mixer.arGuis.collect { |ndefgui|
-			this.forNdefGui(ndefgui);
-		}
-	}
 	
 	init { |bounds, volSlider|
 		if (volSlider.notNil) { 
@@ -36,8 +26,7 @@ PrePostView {
 		preView.hi_(0.5);
 		
 		postView = RangeSlider(parent, bounds);
-		postView.enabled = false;
-		
+		postView.enabled = false;	
 		postView.knobColor_(Color.green(0.6, 0.4));
 		postView.hi_(0.2);
 	}

@@ -7,14 +7,15 @@
 	}
 }
 
+	// error suppression not working yet, fixme.
 + SynthControl { 
-	set { | ... args | 
-		// as fast as possible, no errors please
-		server.sendBundle(nil, [ 
-			['/error', -1], 
-			["/n_set", nodeID] ++ args,
-			['/error', -2] 
-		]);
-	}
+//	set { | ... args | 
+//		// as fast as possible, no errors please
+//		server.sendBundle(nil, [ 
+//			['/error', -1], 
+//			["/n_set", nodeID] ++ args,
+//			['/error', -2] 
+//		]);
+//	}
 }
 
