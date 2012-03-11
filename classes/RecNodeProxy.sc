@@ -85,3 +85,17 @@ RecNodeProxy : NodeProxy {
 
 
 }
+
++ BusPlug {
+
+	record { | path, headerFormat = "aiff", sampleFormat = "int16", numChannels |
+		var rec;
+		if(server.serverRunning.not) { "server not running".inform; ^nil };
+		rec = RecNodeProxy.newFrom(this, numChannels);
+		rec.open(path, headerFormat, sampleFormat);
+		rec.record;
+		^rec
+	}
+	
+	
+}
