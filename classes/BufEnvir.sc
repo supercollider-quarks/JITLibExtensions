@@ -102,13 +102,31 @@ BufEnvir : EnvironmentRedirect {
 	rateScale { arg key;
 		^BufRateScale.kr(this.at(key).bufnum)
 	}
-	
-	// todo: test!
-	rec { arg in, key, dur, offset = 0.0, recLevel=1.0, preLevel=0.0, 
+
+	readAll { arg commonPath, fileExtension;
+		this.doPathKeys({ |key, path| this.read(key, path) }, commonPath, fileExtension)
+	}
+	cueAll { arg commonPath, fileExtension;
+		this.doPathKeys({ |key, path| this.cue(key, path) }, commonPath, fileExtension)
+	}
+
+	doPathKeys { arg func, commonPath, fileExtension;
+		var searchPath, paths;
+		searchPath= commonPath +/+ "*";
+		if(fileExtension.notNil) { searchPath = searchPath ++ "." ++ fileExtension };
+		paths = pathMatch(searchPath);
+		paths.do { |path|
+			var key = difference(path, commonPath);
+			key = key.splitext.first.asSymbol;
+			func.value(key, path);
+		}
+	}
+
+	rec { arg in, key, dur = (1.0), offset = 0.0, recLevel=1.0, preLevel=0.0,
 						run=1.0, loop=1.0, trigger=1.0, doneAction=0;
 		var numChannels = in.asArray.size;
-		if(dur.notNil or: { numChannels != this.at(key).numChannels }) { 
-				this.alloc(key, dur ? 1.0 * server.sampleRate, numChannels) 
+		if(dur.notNil or: { numChannels != this.at(key).numChannels }) {
+				this.alloc(key, dur * server.sampleRate, numChannels)
 		};
 		^RecordBuf.ar(in, this.at(key), offset, run, recLevel, preLevel, loop, trigger, doneAction)
 	}
