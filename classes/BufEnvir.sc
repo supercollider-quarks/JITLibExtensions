@@ -34,7 +34,7 @@ BufEnvir : EnvironmentRedirect {
 	at { arg key;
 		var res;
 		if(key.isNil) { Error("BufEnvir:at() key is nil").throw };
-		if(key.isSequenceableCollection) { ^this.getAll(key) };
+		if(key.isSequenceableCollection) { ^this.atAll(key) };
 		res = envir.at(key);
 		if(server.serverRunning.not) { Error("server not running").throw };
 		if(res.isNil) {
@@ -49,18 +49,28 @@ BufEnvir : EnvironmentRedirect {
 			this.put(key, objects.wrapAt(i))
 		}
 	}
-	getAll { arg keys;
+
+	atAll { arg keys;
 		^keys.collect { |key|
 			this.at(key)
 		}
 	}
+
 	putSeries { arg first, second, last, value;
 		this.putAll(value.asArray, (first, second..last))
+	}
+
+	getAll { arg keys;
+		^this.atAll(keys)  // backward compatibility
 	}
 
 	bufnum { arg key;
 		var res = this.at(key);
 		^if(res.isSequenceableCollection) { res.collect(_.bufnum) } { res.bufnum }
+	}
+
+	doWithUpdate { |key, func|
+		server.bind { var buf = this.at(key); func.value(buf); server.sync; buf.updateInfo }
 	}
 
 	alloc { arg key, numFrames = 2048, numChannels = 1;
@@ -73,7 +83,9 @@ BufEnvir : EnvironmentRedirect {
 
 	read { arg key, path, startFrame = 0, numFrames = -1, completionMessage;
 		if(server.serverRunning.not) { Error("server not running").throw };
-		this.at(key).allocRead(path, startFrame, numFrames, completionMessage);
+		this.doWithUpdate(key, { |buf|
+			buf.allocRead(path, startFrame, numFrames, completionMessage);
+		});
 	}
 
 	zero { arg key;
@@ -85,9 +97,11 @@ BufEnvir : EnvironmentRedirect {
 		^this.alloc(key, size ? fftsize, numChannels).bufnum;
 	}
 
-	cue { arg key, path, startFrame=0, completionMessage;
+	cue { arg key, path, startFrame=0, numChannels, bufferSize, completionMessage;
 		var buf = this.at(key);
 		if(path.isNil) { path = buf.path };
+		if(buf.numFrames == 1 and: { bufferSize.isNil }) { bufferSize = 32768 };
+		buf = this.alloc(key, bufferSize, numChannels);
 		^buf.cueSoundFile(path, startFrame, completionMessage)
 	}
 
@@ -103,11 +117,16 @@ BufEnvir : EnvironmentRedirect {
 		^BufRateScale.kr(this.at(key).bufnum)
 	}
 
-	readAll { arg commonPath, fileExtension;
-		this.doPathKeys({ |key, path| this.read(key, path) }, commonPath, fileExtension)
+	readAll { arg commonPath, fileExtension, startFrame = 0, numFrames = -1, completionMessage;
+		this.doPathKeys({ |key, path|
+			this.read(key, path, startFrame, numFrames, completionMessage)
+		}, commonPath, fileExtension)
 	}
-	cueAll { arg commonPath, fileExtension;
-		this.doPathKeys({ |key, path| this.cue(key, path) }, commonPath, fileExtension)
+
+	cueAll { arg commonPath, fileExtension, startFrame=0, numChannels, bufferSize;
+		this.doPathKeys({ |key, path|
+			this.cue(key, path, startFrame, numChannels, bufferSize)
+		}, commonPath, fileExtension)
 	}
 
 	doPathKeys { arg func, commonPath, fileExtension;
@@ -129,6 +148,11 @@ BufEnvir : EnvironmentRedirect {
 				this.alloc(key, dur * server.sampleRate, numChannels)
 		};
 		^RecordBuf.ar(in, this.at(key), offset, run, recLevel, preLevel, loop, trigger, doneAction)
+	}
+
+	playBuf { arg key, rate = 1, trigger = 0, startPos = 0, loop = 0, doneAction = 0;
+		var buf = this.at(key);
+		^PlayBuf.ar(buf.numChannels, buf, rate * BufRateScale.kr(buf), trigger, startPos, loop, doneAction)
 	}
 
 }
