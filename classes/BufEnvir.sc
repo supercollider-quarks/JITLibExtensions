@@ -26,6 +26,7 @@ BufEnvir : EnvironmentRedirect {
 			buf = this.at(key);
 			bufnum = buf.bufnum;
 			obj.toBuffer(buf);
+			server.sync;
 			buf.updateInfo;
 		});
 		super.put(key, buf)
