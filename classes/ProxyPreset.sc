@@ -136,7 +136,7 @@ ProxyPreset {
 	loadSettings { |path, clear = false| 
 		path = path ?? { this.storePath };
 		if (clear) { settings.clear };
-		this.addSettings(path.loadPath);
+		this.addSettings(path.load);
 	}
 
 	writeSettings { |path, overwrite=false| 
