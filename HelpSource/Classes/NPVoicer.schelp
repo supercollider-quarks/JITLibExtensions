@@ -217,7 +217,6 @@ g.release(79);
 g.unmap(\pan); // autopan should stop ... not working yet! (why?)
 
 
-
 // for comparison, test with a plain Ndef:
 
 Ndef(\a, { |amp=0.1, pan| Pan2.ar(PinkNoise.ar(amp), pan) });
@@ -230,4 +229,11 @@ Ndef(\a).unmap(\pan); // stops wherever lfo ended
 Ndef(\a).unset(\pan); // unset to default
 
 Ndef(\a).set(\pan, 1); // this does unset properly
+
+
+
+// do post-processing on the proxy: 
+g.proxy.filter(150, { |in| (in * 10).distort * 0.2 });
+g.proxy.put(150);
+
 ::
