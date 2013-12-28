@@ -2,6 +2,7 @@
 NPVoicer {
 
 	var <proxy, <indivParams, <synCtl, <usesSpawn = false;
+	var <synthDesc, <hasGate;
 
 	*new { | proxy, indivParams |
 		^super.newCopyArgs(proxy, indivParams ? []);
@@ -13,6 +14,9 @@ NPVoicer {
 		usesSpawn = useSpawn ? usesSpawn;
 		proxy.awake_(usesSpawn.not);
 		if (usesSpawn.not) { proxy.put(0, nil) };
+		synthDesc = SynthDescLib.global[synCtl.source];
+		// know whether sounds will end by themselves
+		hasGate = synthDesc.hasGate;
 	}
 
 	put { | key, args |
@@ -35,7 +39,6 @@ NPVoicer {
 	playingKeys { ^proxy.objects.indices }
 
 		// the most basic messages for the proxy
-	// don't play the source, just the monitor
 	play { | out, numChannels, group, multi=false, vol, fadeTime, addAction |
 		proxy.play(out, numChannels, group, multi, vol, fadeTime, addAction)
 	}
@@ -52,16 +55,38 @@ NPVoicer {
 
 	resume { proxy.resume }
 
+	filterIndivPairs { |argList|
+		if (indivParams.size > 0) {
+			argList = argList.clump(2).select { |pair|
+				indivParams.every(_ != pair[0]);
+			}.flatten(1);
+		};
+		^argList
+	}
+
 	// set global params: key, val, key, val, ...
-	set { |...args| proxy.set(*args); }
-	unset { |...keys| proxy.unset(*keys); }
+	set { |...args|
+		args = this.filterIndivPairs(args);
+		proxy.set(*args);
+	}
 
-	map { |...args| proxy.map(*args); }
-	unmap { |...keys| proxy.map(*keys); }
+	unset { |...keys|
+		keys = keys.removeAll(indivParams);
+		proxy.unset(*keys);
+	}
 
-	// set params individually per node
+	map { |...args|
+		args = this.filterIndivPairs(args);
+		proxy.map(*args);
+	}
+
+	unmap { |...keys|
+		keys = keys.removeAll(indivParams);
+		proxy.map(*keys);
+	}
+
+		// set params individually per node
 	setAt { |key ... args| proxy.setAt(key, *args); }
 	unsetAt { |key ... keys| proxy.setAt(key, *keys); }
 
 }
-
