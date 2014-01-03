@@ -134,14 +134,18 @@ set and unset params at individual playing voices.
 
 EXAMPLES::
 
-	// ToDo
-// An example with KeyPlayer
-// An example with MultiTouchPad
-// An example with NanoKey - MIDI, play and hold notes
-// An example with NanoPad - MIDI, trigger perc notes only
-// An example with Manta controller  any others?
+	// ToDo - more examples - e.g.: 
+	list::
+## with KeyPlayer
+## with MultiTouchPad
+## with NanoKey - MIDI, play and hold notes
+## NanoPad - MIDI, trigger perc notes only
+## with Manta controller 
+##any others?
+::
 
 code::
+
 	// trigger percussion-style notes from computer keyboard while above window.
 	// could also be done without NPVoicer, but it is convenient with NPVoicer.
 (
