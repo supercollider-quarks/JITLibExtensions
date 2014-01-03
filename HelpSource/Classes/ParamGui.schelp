@@ -1,0 +1,184 @@
+TITLE:: ParamGui
+summary:: sketch for a better EnvirGui - e.g. for use with TdefGui/PdefGui.
+categories:: Libraries>JITLib
+related:: Classes/EnvirGui, Classes/TdefGui, Classes/PdefGui, etc.
+
+DESCRIPTION::
+Only a sketch a the moment, some of this may move to EnvirGui.
+
+ParamGui has the following advances over EnvirGui:
+list::
+##it can have an ordered list of param names: orderedNames
+##it can use the Tdef's Halo to access Tdef's own specs and orderedNames if there.
+## one can force a specs/halo sync.
+##it also has a little window for reordering param names.
+::
+
+code::
+
+Much of the code examples will not be used directly as code; they will be available as buttons, shortcuts etc. from a later incarnation of ParamGui.
+
+(
+// make a Tdef and a ParamGui for it:
+
+a = Tdef(\adc).set(\alf, 11, \zwalf, 12);
+b = ParamGui(Tdef(\adc).envir, 8).moveTo(10, 400);
+
+// add specs to the Tdef object (requires Halo class):
+// this is recommended future usage style.
+a.addSpec(\alf, [1, 11, \lin, 1]);
+a.addSpec(\zwalf, [1, 12, \exp, 0.01, 3.5]);
+
+// tell paramgui to use the Tdefs halo:
+b.useHalo(a);
+)
+
+// test spec lookup
+b.specs;
+b.getSpec(\alf);
+a.getHalo(\orderedNames); //
+
+// b.orderedNames = [\alf]; // oops this overwrites the one in the Halo
+b.showNewNames = false;
+
+a.set(\droi, 3, \fia, 4, \fuempf, 5);
+a.addSpec(\droi, [3, 300, \exp, 0.01, 30]);
+a.addSpec(\fia, [4, 400, \exp, 0.01, 40]);
+
+b.showNewNames = true;
+
+b.filterNames = [\zwalf];
+b.showNewNames = true;
+b.showNewNames = false;
+b.filterNames = nil;
+
+b.orderedNames
+a.set(\oans, 1, \zwoa, 2);
+
+b.orderedNames;
+b.grabOrdered; // take all keys from envir;
+b.useHalo(a, myNames: true); // true forces them back into the Halo
+b.orderedNames;
+b.moveName(\oans, 0);
+b.moveName(\zwoa, 1);
+b.moveName(\droi, 2);
+
+b.hideName(\alf);
+b.hideName(\zwalf);
+b.showName(\alf);
+b.filterNames = nil;
+
+b.reorderWindow;
+
+		// Test reordering with a full window
+(
+w = Window("test").front;
+w.addFlowLayout;
+ProxyPresetGui(TdefPreset(Tdef(\a)), 8, w);
+a = Tdef(\adc).set(\alf, 11, \zwalf, 12);
+b = ParamGui(Tdef(\adc).envir, 8, w, 380@200);
+a.addSpec(\alf, [1, 11, \lin, 1]);
+a.addSpec(\zwalf, [1, 12, \exp, 0.01, 3.5]);
+a.set(\droi, 3, \fia, 4, \fuempf, 5);
+a.addSpec(\droi, [3, 300, \exp, 0.01, 30]);
+a.addSpec(\fia, [4, 400, \exp, 0.01, 40]);
+b.useHalo(a, true);
+)
+
+b.reorderWindow;
+
+::
+
+Will do method doc later ...
+
+CLASSMETHODS::
+
+
+INSTANCEMETHODS::
+
+METHOD:: updateSliderSpecs
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: reorderWindow
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: useHalo
+
+ARGUMENT:: haloObject
+
+
+returns:: (describe returnvalue here)
+
+METHOD:: showName
+(describe method here)
+
+ARGUMENT:: name
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: filterNames
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: getState
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: orderedNames
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: makeNameView
+(describe method here)
+
+ARGUMENT:: nameWid
+(describe argument here)
+
+ARGUMENT:: height
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: grabOrdered
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: hideName
+(describe method here)
+
+ARGUMENT:: name
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: moveName
+(describe method here)
+
+ARGUMENT:: name
+(describe argument here)
+
+ARGUMENT:: index
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: showNewNames
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::
