@@ -70,19 +70,24 @@ b.filterNames = nil;
 
 b.reorderWindow;
 
-		// Test reordering with a full window
+	// Test reordering with TdefGui in a full window
 (
-w = Window("test").front;
-w.addFlowLayout;
-ProxyPresetGui(TdefPreset(Tdef(\a)), 8, w);
+
 a = Tdef(\adc).set(\alf, 11, \zwalf, 12);
-b = ParamGui(Tdef(\adc).envir, 8, w, 380@200);
+
 a.addSpec(\alf, [1, 11, \lin, 1]);
 a.addSpec(\zwalf, [1, 12, \exp, 0.01, 3.5]);
 a.set(\droi, 3, \fia, 4, \fuempf, 5);
 a.addSpec(\droi, [3, 300, \exp, 0.01, 30]);
 a.addSpec(\fia, [4, 400, \exp, 0.01, 40]);
-b.useHalo(a, true);
+
+w = Window("test").front;
+w.addFlowLayout;
+ProxyPresetGui(TdefPreset(Tdef(\a)), 8, w);
+
+e = TdefGui(Tdef(\adc), 8, w, 380@150).moveTo(10, 400);
+b = e.envirGui;
+
 )
 
 b.reorderWindow;

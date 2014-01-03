@@ -31,21 +31,27 @@ Halo : Library {
 		^Halo.at(this, *keys);
 	}
 
+	checkSpec {
+		var specs = Halo.at(this, \spec);
+		specs = specs ?? { ().parent_(Spec.specs); };
+		Halo.put(this, \spec, specs);
+		^specs
+	}
+
 		// these will be a common use case,
 		// others could be done similarly:
 	addSpec { |name, spec|
 		if (name.isNil) {
-			Halo.put(this, \spec, ())
+			this.checkSpec
 		} {
 			Halo.put(this, \spec, name, spec.asSpec);
 		}
 	}
 
 	getSpec { |name|
-		var specs = Halo.at(this, \spec);
-		if (specs.isNil) { this.addSpec; };
+		var specs = this.checkSpec;
 		if (name.isNil) { ^specs };
-		^specs.at(name) ?? { name.asSpec };
+		^specs.at(name);
 	}
 
 
