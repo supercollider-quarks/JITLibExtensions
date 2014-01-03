@@ -1,3 +1,24 @@
+/*
+
++	make subclasses:
+
++	NPVoicerL - done.
+  - limit maxVoices,
+  + add sostenuto and sustain:
+	- when sostenuto is called, hold all current notes until sost false
+	- sustain holds all current plus new notes until sustain false
+
++	NPVoicerMono - monophonic, legato
+      maxVoices is 1, if prev still playing,
+      grab it and set its params from new note.
+
++   simple NPVoicerGui? This could show:
+--- the proxy (NdefGui), indivParams disabled,
+--- SynthDef name, hasGate, numPlayingVoices, top, bot
+--- if present: maxVoices, sostenuto, sustain, stealMode
+--- maybe also voiceHistory in an optional little plot;
+
+*/
 
 NPVoicer {
 
@@ -55,6 +76,8 @@ NPVoicer {
 
 	resume { proxy.resume }
 
+	// protect keys that are intended for indivdual nodes
+	// from accidental setting by proxy group
 	filterIndivPairs { |argList|
 		if (indivParams.size > 0) {
 			argList = argList.clump(2).select { |pair|
