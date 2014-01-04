@@ -1,3 +1,9 @@
++ TaskProxy {
+	controlKeys {
+		^if (envir.notNil) { envir.keys.asArray.sort } { [] };
+	}
+}
+
 + TaskProxyGui {
 
 	makeEnvirGui { |lineWidth, height|

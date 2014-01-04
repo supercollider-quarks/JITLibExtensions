@@ -1,57 +1,87 @@
-/* to do:
+// proxy has an envir for parameters
+// typically nuemrical, may also be different.
+// if different, special handling needed.
+// ProxyPreset
 
-NdefPreset:morph assumes both settings have the same order and keys!
-this should be checked... find broken presets?
-
-
-
-* keep local specs here, in Preset? make missing specs?
-* add extras like autorand, autoloop ?
-* build into NdefGui as an option, or do NdefPreset(Ndef(\a));
-TdefPreset
-// keep the presets next to the text file the proxy/preset was created with;
-// save settings to disk locally ...
-// else make a preset/settings folder in userfolder?
-// add timestamp to backup copies of settings?
-// use/adapt/generalize for Tdef/Pdef.envir?
-
-* how to morph between lists of symbols ... random choice?
-* how to morph between lists of different lengths? (e.g. pattern value lists)?
-
-* check presence of specs for all keys,
-* add specsDialog to add / edit current specs.
-*** (use Halo approach for keeping specs with proxy? ***
-* make a blendSafe method which checks that only values
-present in both and settings are blended, and only if
-numerical and equal length. otherwise, do probChoice between them based on
-blend factor.
-
-*/
-
-// abstract superclass for NdefPreset, TdefPreset, PdefPreset
 ProxyPreset {
 
-	var <proxy, <settings, <currSet, <specs, count = 0;
-	var <>storeToDisk = true, <>storePath;
-	var <targSet, <>morphVal = 0, <morphTask;
+	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
+	var <currSet, <targSet, count = 0, <>morphVal = 0, <morphTask;
 
-	*new { |proxy, settings|
-		^super.new.init.proxy_(proxy).addSettings(settings);
+	var <>storeToDisk = false, <>storePath;
+
+
+	*new { |proxy, namesToStore, settings, specs, morphFuncs|
+
+		if (proxy.isNil) {
+			warn("EnvirPreset cannot be empty!");
+			^nil
+		};
+
+		^super.newCopyArgs(proxy, namesToStore, settings, specs, morphFuncs).init;
 	}
 
-	proxy_ { |inProxy|
-		// subclasses should overwrite and test for correct class here:
-		// if (inProxy.isNil or: { inProxy.isKindOf(this.proxyClass) }) {
-			proxy = inProxy;
-		    specs = try { proxy.getSpec } ?? { () };
-		// };
+	init {
+		this.useHalo;
+		this.initTask;
+		this.checkSpecsMissing;
 	}
 
-	init { 		// a list of assocs
-		settings =  List[];
+	checkSpecsMissing { |autoFill = false, dialog = false|
+		// for all missing specs, ask user ...
 
-		// make specs dict for the proxy if there
-		specs = try { proxy.getSpec } ?? { () };
+		var missingSpecNames = namesToStore.select {|name|
+			var spec;
+			proxy.getSpec(name).isNil;
+		};
+
+		if (missingSpecNames.notEmpty) {
+			"please supply specs or special funcs for these param names:".postln;
+			missingSpecNames.postln;
+			if (dialog) { this.specsDialog(missingSpecNames) };
+		};
+	}
+
+	useHalo {
+
+		var haloNames = proxy.getHalo(\namesToStore);
+		var haloSpecs = proxy.getSpec(\spec);
+
+		if (namesToStore.isNil) {
+			namesToStore = haloNames ?? { proxy.controlKeys.asArray.sort };
+			proxy.addHalo(\namesToStore, namesToStore);
+		} {
+			if (haloNames.notNil) {
+				warn("ProxyPreset: namesToStore given: "
+					+ namesToStore.asCompileString +
+					"\n  and in proxy halo: "
+					+ haloNames.asCompileString ++ "!"
+					"\n  using haloNames.");
+			} {
+				proxy.addHalo(\namesToStore, namesToStore);
+			};
+		};
+
+		if (specs.isNil) {
+			specs = proxy.getSpec ?? { () };
+			proxy.addHalo(\namesToStore, namesToStore);
+		} {
+			if (haloSpecs.notNil) {
+				warn("ProxyPreset: specs given: "
+					+ specs.asCompileString +
+					"\n  and in proxy halo: "
+					+ haloSpecs.asCompileString ++ "!"
+					"\n  using haloSpecs.");
+			} {
+				proxy.addHalo(\spec, haloSpecs);
+			};
+		};
+
+			// settings and morphFuncs belong to preset:
+		settings = settings ?? { List[] };
+	}
+
+	initTask {
 
 		morphTask = TaskProxy({ |ev|
 			var numSteps;
@@ -64,6 +94,7 @@ ProxyPreset {
 				this.morph(1 + i / numSteps);
 				ev[\dt].wait;
 			};
+			ev[\doneFunc].value;
 		});
 	}
 
@@ -116,7 +147,7 @@ ProxyPreset {
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
 			currSet = foundSet;
-			proxy.set(*currSet.value);
+			proxy.set(*currSet.value.flat);
 			this.morphVal_(0);
 		};
 	}
@@ -134,16 +165,15 @@ ProxyPreset {
 	}
 
 	// assume proxy has an environment
-	// overwrite in specific subclasses!
 	getFromProxy { |except|
 		var envir = proxy.envir;
-		var settings = List[];
-		if (envir.notNil) {
-			envir.keys.difference(except).asArray.sort.do { |key|
-				settings.add([key, envir[key]]);
-			};
+		var res = [];
+		if (envir.isNil) { ^[] };
+		namesToStore.copy.removeAll(except).collect { |name|
+			var val = envir[name];
+			res = res.add([name, envir.at(name)]);
 		};
-		^envir
+		^res
 	}
 
 	stepCurr { |incr=1|
@@ -156,7 +186,7 @@ ProxyPreset {
 		this.setTarg(settings.wrapAt(targIndex + incr).key);
 	}
 
-	setProxy { |name| proxy.set(*this.getSet(name).value) }
+	setProxy { |name| proxy.set(*this.getSet(name).value.flat) }
 
 
 	// STORAGE to Disk:
@@ -198,29 +228,39 @@ ProxyPreset {
 	// randomize settings:
 
 	randSet { |rand=0.25, startSet, except|
+
 		var randKeysVals, set, randRange;
 		// vary any given set too?
-		set = this.getSet(startSet).value ?? { this.getFromProxy(except) };
+		set = this.getSet(startSet).value ?? {
+			this.getFromProxy(except);
+		};
+
+		if (except.notNil) {
+			set = set.reject{ |pair| except.includes(pair[0]); };
+		};
 
 		randKeysVals = set.collect { |pair|
 			var key, val, normVal, randVal, spec;
 			#key, val = pair;
-			spec = key.asSpec;
+			spec = proxy.getSpec(key);
 			if (spec.notNil, {
 				normVal =  spec.unmap(val);
 				randVal = rrand(
 					(normVal - rand).max(0),
 					(normVal + rand).min(1)
 				);
-				//	[key, val, normVal].postcs;
-				[key, spec.map(randVal)]
-			});
+				[key, val, normVal].postcs;
+				[key, spec.map(randVal)];
+			}, { "no spec: ".post;
+				[key, val].postcs });
 		};
 		^randKeysVals;
 	}
 
+
 	someRand { |rand=0.1, ratio = 0.5|
-		var keys = proxy.controlKeys;
+
+		var keys = namesToStore;
 		var numToKeep = (keys.size * ratio).clip(1, keys.size).round(1).asInteger;
 		var namesToDrop = keys.scramble.drop(keys.size - numToKeep);
 		this.setRand(rand, except: namesToDrop);
@@ -228,7 +268,7 @@ ProxyPreset {
 
 	setRand { |rand, startSet, except|
 		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except));
+		proxy.set(*this.randSet(rand, startSet, except).flat);
 	}
 
 
@@ -244,11 +284,11 @@ ProxyPreset {
 	}
 
 	morph { |blend, name1, name2, mapped=true|
-		proxy.set(*(this.blend(blend, name1, name2, mapped)));
 		morphVal = blend;
+		proxy.set(*(this.blend(blend, name1, name2, mapped).flat));
 	}
 
-	xfadeTo { |target, dur|
+	xfadeTo { |target, dur, doneFunc|
 		var newTargSet;
 		if (target.notNil) {
 			newTargSet = this.getSet(target);
@@ -258,6 +298,7 @@ ProxyPreset {
 				"ProxyPreset: target setting % not found - not xfading.".postf(target);
 			};
 			morphTask.set(\morphTime, dur);
+			morphTask.set(\doneFunc, doneFunc);
 			morphTask.stop.play;
 		};
 	}
@@ -266,6 +307,16 @@ ProxyPreset {
 		var set1, set2;
 		set1 = if (name1.isNil, currSet, { this.getSet(name1) }).value;
 		set2 = if (name2.isNil, targSet, { this.getSet(name2) }).value;
+
+		if (set1.isNil) {
+			"cannot blend: set % is missing.\n".postf(name1);
+			^this;
+		};
+		if (set2.isNil) {
+			"cannot blend: set % is missing.\n".postf(name2);
+			^this;
+		};
+
 		if (mapped) {
 			set1 = this.unmapSet(set1);
 			set2 = this.unmapSet(set2);
@@ -274,24 +325,27 @@ ProxyPreset {
 			^this.blendSets(blend, set1, set2)
 		}
 	}
+
 	// expects just list of [key, val]s
 	mapSet { |set|
 		var key, val;
 		^set.collect { |pair|
 			#key, val = pair;
-			[key, key.asSpec.map(val)]
+			[key, specs[key].map(val)]
 		}
 	}
 	// expects just list of [key, val]s
 	unmapSet { |set|
 		var key, val;
 		^set.collect { |pair|
+
 			#key, val = pair;
-			[key, key.asSpec.unmap(val)]
+			[key, specs[key].unmap(val)]
 		}
 	}
 
 	postSettings {
+		this.as
 		("<pxPresetNameHere>.addSettings(" + settings.asCompileString + ")")
 		.newTextWindow(proxy.key ++ ".pxpreset.scd");
 	}
@@ -340,9 +394,10 @@ ProxyPreset {
 	}
 
 	 specsDialog { |keys, specDict|
+
 		var w, loc, name, proxyKeys, specKeys;
 		specDict = specDict ? specs;
-		keys = keys ?? [\ida, \jacob, \karlo];
+
 		// { this.currFromProxy.clump(2).flop.first.postln };
 		 loc = loc ?? {400@300};
 		w = Window("specs please", Rect(loc.x, loc.y + 40, 300, 200)).front;
@@ -352,150 +407,17 @@ ProxyPreset {
 			"Please enter specs for the following\nparameter keys:"
 			"\n(min, max, warp, step, default, units)"
 		);
+
 		keys.collect { |key|
+			var guessedSpec = Spec.guess(key, proxy.get(key)).storeArgs;
 			var eztext;
 			eztext = EZText(w, Rect(70,0,290,20), key, { |ez|
 				var spec = ez.value.asSpec;
 				specDict.put(key, spec);
 				[key, spec].postcs;
 				},
-				[0.0, 1.0, 'lin', 0.0, 0.5]
+				guessedSpec
 			);
 		};
-	}
-}
-
-TdefPreset : ProxyPreset {
-	classvar <all;
-	*initClass { all = () }
-
-	*new { |key, settings|
-		var res, proxy;
-		if (key.isKindOf(Tdef)) {
-			proxy = key;
-			key = proxy.key;
-		};
-		res = all[key];
-		if (res.isNil) {
-			res = super.new(proxy, settings);
-			all.put(key, res);
-		};
-		^res
-	}
-
-	key { ^all.findKeyForValue(this) }
-
-	proxy_ { |px|
-		if (px.isKindOf(Tdef)) {
-			proxy = px;
-		    specs = try { proxy.getSpec } ?? { () };
-			// proper init state
-			this.currFromProxy;
-			currSet = targSet = this.getSet(\curr);
-			this.setPath;
-		};
-	}
-
-	printOn { | stream |
-		stream << this.class.name << "(" <<< this.key << ")"
-	}
-}
-
-PdefPreset : ProxyPreset {
-	classvar <all;
-	*initClass { all = () }
-
-	*new { |key, settings|
-		var res, proxy;
-		if (key.isKindOf(Pdef)) {
-			proxy = key;
-			key = proxy.key;
-		};
-		res = all[key];
-		if (res.isNil) {
-			res = super.new(proxy, settings);
-			all.put(key, res);
-		};
-		^res
-	}
-
-	key { ^all.findKeyForValue(this) }
-
-	proxy_ { |px|
-		if (px.isKindOf(Pdef)) {
-			proxy = px;
-			// proper init state
-			this.currFromProxy;
-			currSet = targSet = this.getSet(\curr);
-			this.setPath;
-		};
-	}
-
-	printOn { | stream |
-		stream << this.class.name << "(" <<< this.key << ")"
-	}
-}
-
-
-NdefPreset : ProxyPreset {
-	classvar <all;
-	*initClass { all = () }
-
-	*new { |key, settings|
-		var res, proxy;
-		if (key.isKindOf(NodeProxy)) {
-			proxy = key;
-			key = proxy.key;
-		};
-		res = all[key];
-		if (res.isNil) {
-			"proxy is: ".post;
-			res = super.new(proxy, settings);
-			all.put(key, res);
-		};
-		^res
-	}
-
-	key { ^all.findKeyForValue(this) }
-
-	proxy_ { |px|
-		if (px.isKindOf(NodeProxy)) {
-			proxy = px;
-		    specs = try { proxy.getSpec } ?? { () };
-			this.currFromProxy;
-			currSet = targSet = this.getSet(\curr);
-			this.setPath;
-		} {
-			"NdefPreset - can't set proxy to: %!".format(px).warn;
-		};
-	}
-
-	getFromProxy { |except| ^proxy.getKeysValues(except) }
-
-	setRand { |rand, startSet, except|
-		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except).flat);
-	}
-
-	setCurr { |name|
-		var foundSet = this.getSet(name);
-		if (foundSet.notNil) {
-			currSet = foundSet;
-			proxy.set(*currSet.value.flat);
-			this.morphVal_(0);
-		};
-	}
-
-	setProxy { |name| proxy.set(*this.getSet(name).value.flat) }
-
-	morph { |blend, name1, name2, mapped=true|
-		proxy.set(*(this.blend(blend, name1, name2, mapped).flat));
-		morphVal = blend;
-	}
-
-	storeArgs { ^[this.key] }
-
-	printOn { | stream |
-		stream << this.class.name << "(" <<< this.key << ")"
 	}
 }

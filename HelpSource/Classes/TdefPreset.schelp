@@ -1,0 +1,181 @@
+TITLE:: TdefPreset
+summary:: storing and morphing between presets for Tdefs
+categories:: Undocumented classes
+related:: Classes/ProxyPreset, Classes/PdefPreset, Classes/PdefPreset, Classes/NdefPreset
+
+DESCRIPTION::
+
+code::
+
+	// just raw examples, not fully tested yet!
+(
+Tdef(\a).set(\dt, 0.5, \plong, [12, 24]);
+Tdef(\a, { |envir|
+	loop {
+		envir.postcs;
+		envir.dt.wait;
+	}
+}).play;
+)
+
+Tdef(\a).stop
+
+z = TdefPreset(Tdef(\a)).dump;
+TdefPreset.all[\a].dump.settings;
+z.getFromProxy
+
+(		// add 3 sets to the list
+z.setProxy(\curr);
+Tdef(\a).set(\freq, 1000, \amp, 0.15, \plong, [12, 24] * 3);
+z.addSet(\ada);
+Tdef(\a).set(\freq, 1500, \amp, 0.25, \plong, [12, 24] * 5);
+z.addSet(\bebe);
+Tdef(\a).set(\freq, 2500, \amp, 0.2, \plong, [12, 24]);
+z.addSet(\coco);
+z.settings.printcsAll; "";
+)
+
+z.getSet(\coco);
+z.getSet(\ada);
+z.getSet(\bebe);
+
+z.currSet;
+z.targSet;
+z.keys;
+
+Tdef(\a).envir
+
+z.setCurr(\coco);
+Tdef(\a).envir
+
+z.setCurr(\bebe);
+Tdef(\a).envir
+
+z.setTarg(\ada);
+Tdef(\a).envir
+
+
+
+(
+// morphing and randomizing settings require specs to exist!
+
+Spec.add(\plong, [0, 100]);
+Spec.add(\dt, [0.01, 100, \exp]);
+
+w = Window("TdefPreset test", Rect(20, 300, 420, 400)).front;
+w.addFlowLayout;
+g = ProxyPresetGui(z, 8, w);
+t = TdefGui(Tdef(\a), 8, w, 400@0);
+)
+
+z.morph(0.5, \ada, \bebe);
+
+z.setProxy(\ada);
+z.setProxy(\bebe);
+
+z.setProxy(\bebe);
+z.getSet(\coco);
+z.getSet(\bebe);
+
+
+z.currSet;
+z.targSet;
+
+z.getSet(\curr);
+z.stepCurr(1);
+z.stepCurr(-1);
+
+// random settings require specs to exist:
+Spec.add(\dens, [1, 1000, \exp]);
+Spec.add(\ring, [0.0001, 100, \exp]);
+z.randSet(0.1, \ada)
+z.setRand(0.03);
+
+z.prepMorph;
+z.targSet;
+
+z.morphVal = 0.8;
+
+	// morph from one to the other:
+fork { 20.do { |i| 0.1.wait; z.morph(i + 1/ 20, \curr, \ada) } };
+
+
+z.removeSet(\set1);
+z.removeSettings([\ada]);
+z.settings;
+
+z.storeDialog;
+z.deleteDialog;
+
+z.randSet(rand: 0.01);	// make a randomized setting
+z.setRand(rand: 0.1, startSet: \curr);	// vary based on a given set;
+z.setRand(rand: 0.1, startSet: \set1, except: [\amp]);	// dont change amp
+
+
+/* interpolation tests:
+
+	// unmap a set
+x = z.unmapSet(z.getSet(\bebe).value);
+
+	// unmap a second set
+y = z.unmapSet(z.getSet(\coco).value);
+
+	// does not check for names yet!
+z.blendSets(0.5, x, y);
+
+z.blend(0.2, \bebe, \coco);
+a.set(*z.blend(1.0.rand, \bebe, \coco).flat);
+
+	// interpolate
+fork { 20.do { |i| 0.1.wait; a.set(*z.blend(i + 1/ 20, \bebe, \coco).flat) } };
+
+fork { 20.do { |i| 0.1.wait; z.morph(i + 1/ 20, \coco, \bebe) } };
+
+*/
+::
+
+CLASSMETHODS::
+
+METHOD:: all
+the global dict for all TdefPreset instances
+
+private:: initClass
+
+METHOD:: new
+make a new NdefPreset
+
+ARGUMENT:: key
+key is converted to a proper object for the TdefPreset: if it is a \symbol, 
+
+ARGUMENT:: settings
+setttings to use for the TdefPreset
+
+INSTANCEMETHODS::
+
+METHOD:: proxy
+(describe method here)
+
+ARGUMENT:: px
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: key
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: getFromProxy
+(describe method here)
+
+ARGUMENT:: except
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(some example code)
+::

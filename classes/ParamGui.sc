@@ -38,8 +38,9 @@ ParamGui : EnvirGui {
 	// support specs from Halo spec envir
 
 	useHalo { |haloObject, myNames = false|
+
 		if (haloObject.isNil) {
-			warn("ParamGui: object is nil, cant use its Halo!");
+		//	warn("ParamGui: object is nil, cant use its Halo!");
 			^this
 		};
 
