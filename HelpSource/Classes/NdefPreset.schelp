@@ -1,298 +1,60 @@
 TITLE:: NdefPreset
-summary:: storing and morphing between presets for Ndefs and NodeProxies.
-categories:: Libraries>JITLib
-related:: Classes/Ndef, Classes/NodeProxy, Classes/ProxyPreset, Classes/TdefPreset, Classes/PdefPreset
+summary:: storing and morphing between presets for Ndefs
+categories:: Undocumented classes
+related:: Classes/ProxyPreset, Classes/PdefPreset, Classes/TdefPreset
 
 DESCRIPTION::
-Specialised preset storage and morphing instrument for Ndefs and Nodeproxies.
-Many of the common methods are documented in its superclass link::Classes/ProxyPreset::.
+Like ProxyPreset, NdefPreset stores settings and can morph between them.
 
-ProxyPreset
+code::
+to follow
+::
 
 CLASSMETHODS::
 
+METHOD:: all
+the global dict for all NdefPreset instances
+
+METHOD:: proxyClass
+the class to be used with NdefPreset: Ndef.
+
 private:: initClass
 
-METHOD:: all
-A global dict where all instances of NdefPreset live.
-The NdefPreset's name is usually inferred from the proxy.
-code::
-	NdefPreset.all;
-	NdefPreset.all[\a].dump;
-::
-
 METHOD:: new
-find an existing NdefPreset or make a new one by name.
-
-code::
-	// make an Ndef
-s.boot;
-(
-Spec.add(\dens, [1, 1000, \exp]);
-Spec.add(\ring, [0.0001, 100, \exp]);
-
-a = Ndef(\a, { |freq=300, dens=10, ring = 0.03, amp= 0.25|
-	Ringz.ar(Dust.ar(dens ! 2, (1/dens.max(1)).sqrt * amp), (freq * [1.01, 0.99]).lag(0.2), ring)
-}).play;
-
-	// make a preset for Ndef(\a)
-	// - stored by the Ndef's name in NdefPreset.all
-z = NdefPreset(Ndef(\a));
-
-w = Window("NdefPreset test", Rect(200, 200, 420, 250)).front;
-w.addFlowLayout;
-	// a gui for the NdefPreset
-g = ProxyPresetGui(z, parent: w);
-	// and one for the Ndef
-b = NdefGui(a, 8, parent: w);
-)
-::
+access an existing NdefPreset or make a new one for a Ndef.
 
 ARGUMENT:: key
-the name of the NdefPreset
+If key is key of an existing NdefPreset, then that is accessed. If key is a Ndef, then a net NdefPreset with that Ndef's key will be created.
+
+ARGUMENT:: namesToStore
+which paramNames to store in the presets. if none given, inferred from the current proxy settings.
+
 ARGUMENT:: settings
-pre-existing settings
+provide preset settings for the proxy
+
+ARGUMENT:: specs
+provide preset specs for the proxy, mainly for randomizing and morphing.
+if none given here, and object has a halo of specs, those in halo will be used.
+
+ARGUMENT:: morphFuncs
+special functions to provide for morphing between non-numerical settings.
+not used yet.
 
 
 INSTANCEMETHODS::
 
-subsection:: Instance Variables
-
-METHOD:: proxy
-get and set proxy for which NdefPreset handles settings
+private:: proxy, prAdd
 
 METHOD:: key
-the key/name of the NdefPreset
-
-METHOD:: settings
-get the current settings of the proxy
-
-METHOD:: morphVal
-get and set the current morph value, i.e. the value the interpolator has.
-
-code::
-z.proxy;
-z.settings;
-
-(		// add 3 settings to the list
-a.set(\freq, 1000, \dens, 10, \amp, 0.15, \ring, 0.1);
-z.addSet(\ada);
-a.set(\freq, 1500, \dens, 30, \amp, 0.25, \ring, 0.05);
-z.addSet(\bebe);
-a.set(\freq, 2500, \dens, 30, \ring, 0.02, \amp, 0.1);
-z.addSet(\coco);
-);
-
-z.morphVal;
-::
-
-subsection:: Instance Methods
-
-METHOD:: setProxy
-set the Proxy to an existing named setting.
-ARGUMENT:: name
-the name of the setting
-
-METHOD:: morph
-morph between two settings.
-ARGUMENT:: blend
-blend factor: 0.0 is left setting, 0.5 is 50:50, 1.0 is right.
-
-ARGUMENT:: name1
-name of setting 1 (currSet in ProxyPresetGui)
-ARGUMENT:: name2 
-name of setting 2 (targSet in ProxyPresetGui)
-ARGUMENT:: mapped
-flag whether to blend mapped values.
-
-METHOD:: setRand
-random proxy setting.
-ARGUMENT:: rand
-randomizing strength (0.0 - 1.0)
-
-ARGUMENT:: startSet
-which set to randomize
-
-ARGUMENT:: except
-keys to be excepted from randomizing
+the key under which the NdefPreset is stored in NdefPreset.all
 
 METHOD:: getFromProxy
-get current settings from proxy
+get current values for namesToStore from proxy, except those given in <except>
 
-ARGUMENT:: except
-except the values for thes except keys
 
-METHOD:: setCurr
-set current setting to setting stored under name
-
-ARGUMENT:: name
-the name of the new setting
 
 EXAMPLES::
 
 code::
-
-(
-Spec.add(\dens, [1, 1000, \exp]);
-Spec.add(\ring, [0.0001, 100, \exp]);
-
-a = Ndef(\a, { |freq=300, dens=10, ring = 0.03, amp= 0.25|
-    Ringz.ar(Dust.ar(dens ! 2, (1/dens.max(1)).sqrt * amp), (freq * [1.01, 0.99]).lag(0.2), ring)
-}).play;
-
-	// make a preset for Ndef(\a)
-z = NdefPreset(Ndef(\a));
-
-	// a gui for the NdefPreset
-w = Window("NdefPreset test", Rect(200, 200, 420, 250)).front;
-w.addFlowLayout;
-g = ProxyPresetGui(z, parent: w);
-	// and one for the Ndef
-b = NdefGui(a, 8, parent: w);
-)
-
-NdefPreset.all;
-
-(		// add 3 settings to the list
-a.set(\freq, 1000, \dens, 10, \amp, 0.15, \ring, 0.1);
-z.addSet(\ada);
-a.set(\freq, 1500, \dens, 30, \amp, 0.25, \ring, 0.05);
-z.addSet(\bebe);
-a.set(\freq, 2500, \dens, 30, \ring, 0.02, \amp, 0.1);
-z.addSet(\coco);
-)
-	// these are all the settings now:
-z.settings.printcsAll; "";
-
-	// current interpolation value
-z.morphVal;
-
-
-		Handling settings:
-
-	//	postSettings as saveable code:
-z.postSettings
-
-	// add a setting
-z.addSet(\blong, [\freq, 666]);
-	// add a list of settings
-z.addSettings([\blong -> [\freq, 666], \kling -> [\freq, 999]]);	
-
-	// remove  a setting
-z.removeSet(\kling);
-	// remove settings
-z.removeSettings([\kling, \blong]);
-
-	// dialog window for storing a setting by name
-z.storeDialog
-// dialo window for deleting settings
-z.deleteDialog
-		
-
-/// currently active setting. A list of [[name, value], [name, value] ... ].
-z.currSet;
-z.setCurr(\ada);
-z.currSet;
-
-	//	targSet	a second setting used for interpolation.
-z.targSet;
-z.setTarg(\bebe);
-z.targSet;
-
-	// step thru presets, up or down by increment
-z.stepCurr(1); 
-z.stepCurr(-1);
-z.stepTarg(1); 
-z.stepTarg(-1);
-
-
-	// Finding settings by name or index: 
-z.getSetNames;
-z.getIndex(\coco);
-z.getSet(\bebe);
-z.currIndex;
-z.targIndex;
-
-
-	// Synching setting from/to the proxy
-
-	// ask proxy for current setting			
-z.getFromProxy
-	// set NdefPreset to current proxy setting
-z.currFromProxy
-	// set proxy to a named setting			
-z.setProxy(\coco);
-
-
-		// Randomizing presets 
-(
-// morphing and randomizing settings require specs for all params!
-Spec.add(\dens, [1, 1000, \exp]);
-Spec.add(\ring, [0.0001, 100, \exp]);
-)
-
-// randSet (rand, startSet, except)
-Generate a more or less randomized setting based on a named setting
-rand - By how much to randomize Default value is 0.25, a qurter of the spec range. 
-startSet - which set to vary. by default this is currSet.
-except - keys to except from variation.
-
-z.randSet(0.1, \ada, [\ring]);
-
-
-// setRand (rand, startSet, except)
-Randomize a setting by some amount, and make it current.
-rand -  how much to vary (0.0 is no change, 1.0 is full range)
-startSet - which set to start with
-except - which keys not to vary
-
-z.setRand(0.03);
-
-// someRand (rand, ratio) 
-randomize some of the named values by some amount
-rand - how much to vary the values (from 0.0 to 1.0)
-ratio - which percentage (from 0.0 to 1.0) of the values to vary.
-
-z.someRand(0.5, 0.5)
-
-
-////////// Morphing between presets:
-
-// morph (val, name1, name2, mapped)	
-// morphs between two named setting by a blend value, and sets proxy
-blend	- blend value between 0 and 1 - 0.0 is all name1, 1.0 is all name2
-name1 	- the left setting
-name2 	- the right setting
-mapped 	- a flag whether to interpolate by mapping/unmapping thru specs. 
-		requires specs to be globally or locally present.
-
-// creates that setting, and sets proxy
-z.morph(0.0, \ada, \coco);
-z.morph(0.1, \ada, \coco);
-z.morph(0.3, \ada, \coco);
-z.morph(0.5, \ada, \coco);
-z.morph(1.0, \ada, \coco);
-z.morph(0.5, \ada, \coco);
-
-// xfadeTo (target, dur)
-Short prose description of method.
-target - Explanation of target. Default value is nil. Other information.
-dur - Explanation of dur. Default value is nil. Other information.
-
-// inline example
-z.xfadeTo(\ada, 2);
-z.xfadeTo(\coco, 10);
-z.xfadeTo(\bebe, 2);
-
-
-// blend (blend, name1, name2, mapped)	create a blend between settings name1 and name2
-blend 	- blend value between 0 and 1 - 0.0 is all name1, 1.0 is all name2
-name1 	- the left setting
-name2 	- the right setting
-mapped 	- a flag whether to interpolate by mapping/unmapping thru specs. 
-		requires specs to be globally or locally present.
-
-// just creates that setting, does not set proxy
-z.blend(0.5, \ada, \coco);
-
+to follow
 ::

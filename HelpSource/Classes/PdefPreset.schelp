@@ -1,10 +1,10 @@
-TITLE:: TdefPreset
-summary:: storing and morphing between presets for Tdefs
+TITLE:: PdefPreset
+summary:: storing and morphing between presets for Pdefs
 categories:: Undocumented classes
-related:: Classes/ProxyPreset, Classes/PdefPreset, Classes/NdefPreset
+related:: Classes/ProxyPreset, Classes/TdefPreset, Classes/NdefPreset
 
 DESCRIPTION::
-Like ProxyPreset, TdefPreset stores settings and can morph between them.
+Like ProxyPreset, PdefPreset stores settings and can morph between them.
 
 code::
 to follow
@@ -12,20 +12,20 @@ to follow
 
 CLASSMETHODS::
 
-TdefPreset
+PdefPreset
 METHOD:: all
-the global dict for all TdefPreset instances
+the global dict for all PdefPreset instances
 
 METHOD:: proxyClass
-the class to be used with TdefPreset: Tdef.
+the class to be used with PdefPreset: Pdef.
 
 private:: initClass
 
 METHOD:: new
-access an existing TdefPreset or make a new one for a Tdef.
+access an existing PdefPreset or make a new one for a Pdef.
 
 ARGUMENT:: key
-If key is key of an existing TdefPreset, then that is accessed. If key is a Tdef, then a net TdefPreset with that Tdef's key will be created.
+If key is key of an existing PdefPreset, then that is accessed. If key is a Pdef, then a net PdefPreset with that Pdef's key will be created.
 
 ARGUMENT:: namesToStore
 which paramNames to store in the presets. if none given, inferred from the current proxy settings.
@@ -47,7 +47,7 @@ INSTANCEMETHODS::
 private:: proxy, prAdd
 
 METHOD:: key
-the key under which the TdefPreset is stored in TdefPreset.all
+the key under which the PdefPreset is stored in PdefPreset.all
 
 METHOD:: getFromProxy
 get current values for namesToStore from proxy, except those given in <except>

@@ -8,7 +8,7 @@ NdefPreset : ProxyPreset {
 
 	*proxyClass { ^Ndef }
 
-	*new { |key, settings|
+	*new { |key, namesToStore, settings, specs, morphFuncs|
 
 		var res, proxy;
 		if (key.isKindOf(this.proxyClass)) {
@@ -23,7 +23,7 @@ NdefPreset : ProxyPreset {
 			proxy = Ndef.dictFor(Server.default)[key];
 
 			if (proxy.notNil) {
-				res = super.new(proxy, settings).prAdd(key);
+				res = super.new(proxy, namesToStore, settings, specs, morphFuncs).prAdd(key);
 			} {
 				"% - no preset or proxy found.\n".postf(this.proxyClass);
 			};
