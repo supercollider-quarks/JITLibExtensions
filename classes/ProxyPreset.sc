@@ -165,6 +165,8 @@ ProxyPreset {
 	}
 
 	// assume proxy has an environment
+	// to do - this could also be supported
+	// with proxy.getKeysValues, as with NodeProxies.
 	getFromProxy { |except|
 		var envir = proxy.envir;
 		var res = [];

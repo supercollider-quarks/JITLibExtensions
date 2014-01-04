@@ -1,5 +1,5 @@
 
-NdefPreset : EnvirPreset {
+NdefPreset : ProxyPreset {
 
 	classvar <all;
 	var <key;

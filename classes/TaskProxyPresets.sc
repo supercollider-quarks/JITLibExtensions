@@ -1,5 +1,5 @@
 
-TdefPreset : EnvirPreset {
+TdefPreset : ProxyPreset {
 
 	classvar <all;
 	var <key;
