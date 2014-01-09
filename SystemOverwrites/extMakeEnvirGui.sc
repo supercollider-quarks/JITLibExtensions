@@ -32,10 +32,10 @@
 	}
 
 	useHalo { |haloObject, myNames = false|
-		"NdefParamGui:useHalo gets called.".postln;
+	//	"NdefParamGui:useHalo gets called.".postln;
 
 		if (haloObject.isNil) {
-			warn("NdefParamGui: object is nil, cant use its Halo!");
+		//	warn("NdefParamGui: object is nil, cant use its Halo!");
 			^this
 		};
 		specs = haloObject.getSpec;

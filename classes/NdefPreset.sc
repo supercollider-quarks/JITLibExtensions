@@ -23,7 +23,9 @@ NdefPreset : ProxyPreset {
 			proxy = Ndef.dictFor(Server.default)[key];
 
 			if (proxy.notNil) {
-				res = super.new(proxy, namesToStore, settings, specs, morphFuncs).prAdd(key);
+				res = super.new(proxy, namesToStore,
+					settings, specs, morphFuncs).prAdd(key);
+				res.currFromProxy;
 			} {
 				"% - no preset or proxy found.\n".postf(this.proxyClass);
 			};
@@ -37,7 +39,7 @@ NdefPreset : ProxyPreset {
 	}
 
 	proxy_ { |px|
-		if (px.isKindOf(Pdef)) {
+		if (px.isKindOf(Ndef)) {
 			proxy = px;
 			this.useHalo(proxy);
 			// properly init state

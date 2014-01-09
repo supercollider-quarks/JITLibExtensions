@@ -310,6 +310,9 @@ ProxyPreset {
 		set1 = if (name1.isNil, currSet, { this.getSet(name1) }).value;
 		set2 = if (name2.isNil, targSet, { this.getSet(name2) }).value;
 
+		if (blend == 0) { ^set1 };
+		if (blend == 1) { ^set2 };
+
 		if (set1.isNil) {
 			"cannot blend: set % is missing.\n".postf(name1);
 			^this;

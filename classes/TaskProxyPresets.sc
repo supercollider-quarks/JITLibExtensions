@@ -1,4 +1,5 @@
 
+
 TdefPreset : ProxyPreset {
 
 	classvar <all;
@@ -22,7 +23,9 @@ TdefPreset : ProxyPreset {
 			// find proxy with same name
 			proxy = this.proxyClass.all[key];
 			if (proxy.notNil) {
-				res = super.new(proxy, namesToStore, settings, specs, morphFuncs).prAdd(key);
+				res = super.new(proxy, namesToStore,
+					settings, specs, morphFuncs).prAdd(key);
+				res.currFromProxy;
 			} {
 				"% - no preset or proxy found.\n".postf(this.proxyClass);
 			};
@@ -36,7 +39,7 @@ TdefPreset : ProxyPreset {
 	}
 
 	proxy_ { |px|
-		if (px.isKindOf(Pdef)) {
+		if (px.isKindOf(this.proxyClass)) {
 			proxy = px;
 			this.useHalo(proxy);
 			// properly init state
@@ -74,8 +77,10 @@ PdefPreset : ProxyPreset {
 			// find proxy with same name
 			proxy = this.proxyClass.all[key];
 			if (proxy.notNil) {
-				res = super.new(proxy, namesToStore, settings, specs, morphFuncs)
+				res = super.new(proxy, namesToStore,
+					settings, specs, morphFuncs)
 				.prAdd(key);
+				res.currFromProxy;
 			} {
 				"% - no preset or proxy found.\n".postf(this.proxyClass);
 			};
@@ -89,7 +94,7 @@ PdefPreset : ProxyPreset {
 	}
 
 	proxy_ { |px|
-		if (px.isKindOf(Pdef)) {
+		if (px.isKindOf(this.proxyClass)) {
 			proxy = px;
 			this.useHalo(proxy);
 			// properly init state
