@@ -128,8 +128,8 @@ NPVoicerL : NPVoicer {
 		// maybe ask proxy who is still playing every now and then
 		if (hasGate.not) {
 			// figure how to estimate time synth will live
-			var susDefault = defParamValues[\sustainedain];
-			var susArgIndex = args.indexOf(\sustainedain);
+			var susDefault = defParamValues[\sustain];
+			var susArgIndex = args.indexOf(\sustain);
 			var susFromArg = susArgIndex !? { args[susArgIndex + 1] };
 			var soundingTime = susFromArg ? susDefault ? 1;
 			defer ({ this.release(key) }, soundingTime);

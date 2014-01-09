@@ -18,13 +18,18 @@ ProxyPreset {
 			^nil
 		};
 
-		^super.newCopyArgs(proxy, namesToStore, settings, specs, morphFuncs).init;
+		^super.newCopyArgs(proxy, namesToStore,
+			settings, specs, morphFuncs).init;
 	}
 
 	init {
 		this.useHalo;
 		this.initTask;
 		this.checkSpecsMissing;
+		// init morph here already?
+		this.currFromProxy;
+		this.setCurr(\curr);
+		this.setTarg(\curr);
 	}
 
 	checkSpecsMissing { |autoFill = false, dialog = false|
@@ -156,12 +161,11 @@ ProxyPreset {
 		var foundSet;
 		foundSet = this.getSet(name);
 		if (foundSet.notNil) { targSet = foundSet; };
-		if (setCurr) { this.currFromProxy; };
+		if (setCurr) { this.prepMorph; };
 	}
 
 	currFromProxy {
 		this.addSet(\curr, this.getFromProxy);
-		this.morphVal_(0)
 	}
 
 	// assume proxy has an environment
@@ -179,12 +183,12 @@ ProxyPreset {
 	}
 
 	stepCurr { |incr=1|
-		var currIndex = settings.indexOf(currSet);
+		var currIndex = settings.indexOf(currSet) ? 0;
 		this.setCurr(settings.wrapAt(currIndex + incr).key);
 	}
 
 	stepTarg { |incr=1|
-		var targIndex = settings.indexOf(targSet);
+		var targIndex = settings.indexOf(targSet) ? 0;
 		this.setTarg(settings.wrapAt(targIndex + incr).key);
 	}
 
@@ -251,7 +255,7 @@ ProxyPreset {
 					(normVal - rand).max(0),
 					(normVal + rand).min(1)
 				);
-				[key, val, normVal].postcs;
+				// [key, val, normVal].postcs;
 				[key, spec.map(randVal)];
 			}, { "no spec: ".post;
 				[key, val].postcs });
@@ -271,6 +275,7 @@ ProxyPreset {
 	setRand { |rand, startSet, except|
 		rand = rand ?? { exprand(0.001, 0.25) };
 		proxy.set(*this.randSet(rand, startSet, except).flat);
+		this.prepMorph;
 	}
 
 
@@ -403,7 +408,6 @@ ProxyPreset {
 		var w, loc, name, proxyKeys, specKeys;
 		specDict = specDict ? specs;
 
-		// { this.currFromProxy.clump(2).flop.first.postln };
 		 loc = loc ?? {400@300};
 		w = Window("specs please", Rect(loc.x, loc.y + 40, 300, 200)).front;
 		w.addFlowLayout;

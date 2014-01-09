@@ -68,13 +68,15 @@ ProxyPresetGui : JITGui {
 		});
 
 		delBtn =  Button(zone, Rect(0,0, 40, butHeight))
-		.states_([["del", skin.fontColor, skin.foreground]]).font_(font)
+		.states_([["del", skin.fontColor, skin.foreground]])
+		.font_(font)
 		.action_({ object.deleteDialog(loc:
 			(parent.bounds.left - 100 @ parent.bounds.bottom))
 		});
 
 		Button(zone, Rect(0,0,40, butHeight))
-		.states_([["rand", skin.fontColor, skin.foreground]]).font_(font)
+		.states_([["rand", skin.fontColor, skin.foreground]])
+		.font_(font)
 		.action_({ |but, modif|
 			// cocoa and swingosc -alt mod.
 			var rand = if ([524576, 24].includes(modif)) {
@@ -83,7 +85,8 @@ ProxyPresetGui : JITGui {
 		});
 
 		Button(zone, Rect(0,0, 40, butHeight))
-		.states_([["doc", skin.fontColor, skin.foreground]]).font_(font)
+		.states_([["doc", skin.fontColor, skin.foreground]])
+		.font_(font)
 		.action_({ object.postSettings });
 
 		setRPop = PopUpMenu(zone, Rect(0,0, 80, butHeight))
@@ -91,7 +94,6 @@ ProxyPresetGui : JITGui {
 		.background_(skin.foreground)
 		.action_({ |pop|
 			object.setTarg(pop.items[pop.value].asSymbol);
-			object.morphVal_(0);
 		});
 
 		StaticText(zone, Rect(0,0, 30, butHeight))
@@ -114,7 +116,7 @@ ProxyPresetGui : JITGui {
 
 		xfader = Slider(zone, Rect(0,0, 320, butHeight))
 		.action_({ |sl|
-			object.morph(sl.value.postln,
+			object.morph(sl.value,
 				object.currSet.key,
 				object.targSet.key
 			);
