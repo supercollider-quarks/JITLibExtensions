@@ -20,7 +20,9 @@
 
 	object_ { |obj|
 		super.object_(obj);
-		envirGui.useHalo(this.object);
+		if(envirGui.notNil) {
+			envirGui.useHalo(this.object);
+		};
 	}
 }
 
