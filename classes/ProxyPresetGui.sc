@@ -30,8 +30,8 @@ ProxyPresetGui : JITGui {
 		var minHeight;
 
 		if (numItems > 0) {
-			minHeight = (skin.headHeight * 2) + 12
-			+ (numItems + 1 * skin.buttonHeight);
+			minHeight = (skin.headHeight * 2)
+			+ (numItems + 2 * skin.buttonHeight);
 		} {
 			minHeight = (skin.headHeight * 2 + 8);
 		};

@@ -1,5 +1,5 @@
 
-RecordProxyMixer {
+RecordProxyMixer2 {
 	var <>proxymixer, bounds;
 	var <recorder, <recType=\mix;
 	var <>recHeaderFormat, <>recSampleFormat, <preparedForRecording=false;
