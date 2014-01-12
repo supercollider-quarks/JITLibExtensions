@@ -33,19 +33,20 @@ Halo : Library {
 
 	checkSpec {
 		var specs = Halo.at(this, \spec);
-		specs = specs ?? { ().parent_(Spec.specs); };
-		Halo.put(this, \spec, specs);
+		if (specs.isNil) {
+			specs = ().parent_(Spec.specs);
+			Halo.put(this, \spec, specs);
+		};
 		^specs
 	}
 
 		// these will be a common use case,
 		// others could be done similarly:
 	addSpec { |name, spec|
-		if (name.isNil) {
-			this.checkSpec
-		} {
+		this.checkSpec;
+		if (name.notNil) {
 			Halo.put(this, \spec, name, spec.asSpec);
-		}
+		};
 	}
 
 	getSpec { |name|
