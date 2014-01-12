@@ -123,15 +123,16 @@ NPVoicerL : NPVoicer {
 	postHist { voiceHistory.printAll; }
 
 	trackVoice {|key, args|
+		var susDefault, susArgIndex, susFromArg, soundingTime;
 		voiceHistory.add([key, args]);
 		// why use a voicer when notes end by themselves?
 		// maybe ask proxy who is still playing every now and then
 		if (hasGate.not) {
 			// figure how to estimate time synth will live
-			var susDefault = defParamValues[\sustain];
-			var susArgIndex = args.indexOf(\sustain);
-			var susFromArg = susArgIndex !? { args[susArgIndex + 1] };
-			var soundingTime = susFromArg ? susDefault ? 1;
+			susDefault = defParamValues[\sustain];
+			susArgIndex = args.indexOf(\sustain);
+			susFromArg = susArgIndex !? { args[susArgIndex + 1] };
+			soundingTime = susFromArg ? susDefault ? 1;
 			defer ({ this.release(key) }, soundingTime);
 		};
 	}
@@ -161,6 +162,7 @@ NPVoicerL : NPVoicer {
 	}
 
 	checkLimit {
+		var keys, index;
 		// check before adding the new voice,
 		// so it can never be killed
 		if (proxy.objects.size <= maxVoices) { ^this };
@@ -170,12 +172,11 @@ NPVoicerL : NPVoicer {
 			\lowest, { this.release(proxy.objects.indices[0]) },
 			// maybe top and bottom voices will be less dispensable?
 			\middle, {
-				var keys = proxy.objects.indices;
-				var key = keys[keys.size div: 2];
-				this.release(key);
+				keys = proxy.objects.indices;
+				this.release(keys[keys.size div: 2]);
 			},
 			\softest, {
-				var index = this.findSoftestIndex ? 0;
+				index = this.findSoftestIndex ? 0;
 				this.release(voiceHistory[index][0]);
 			},
 			{ this.release(voiceHistory[0][0]) }

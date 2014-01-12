@@ -6,7 +6,8 @@ RecordProxyMixer2 {
 	var skipjack, <display;
 
 	*initClass {
-			GUI.skins.put(\jitSmall, (
+		Class.initClassTree(GUI);
+		GUI.skins.put(\jitSmall, (
 				fontSpecs: 	["Helvetica", 10],
 				fontColor: 	Color.black,
 				background: 	Color(0.8, 0.85, 0.7, 0.5),
