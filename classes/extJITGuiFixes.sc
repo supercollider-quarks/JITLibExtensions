@@ -2,9 +2,12 @@
 // quietly for 3.6.6 and earlier versions.
 // remove when 3.6.6 is ancient.
 
-// enable TaskProxyGuis for anonymous tasks
+// enable TaskProxyGuis for anonymous tasks,
+// and let TdefGuis et al be more generous
+
 + TaskProxyGui {
 	*observedClass { ^PatternProxy }
+	accepts { |obj| ^obj.isNil or: { obj.isKindOf(PatternProxy) } }
 }
 + PatternProxy {
 	key { ^'anon' }
