@@ -15,6 +15,19 @@
 			envirGui.useHalo(this.object);
 		};
 	}
+
+	makeEnvirGui { |lineWidth, height|
+		zone.decorator.nextLine.shift(0, 2);
+
+		envirGui = ParamGui(
+			try { this.object.envir },
+			numItems,
+			zone,
+			Rect(0, 20, lineWidth, numItems * height),
+			false
+		);
+	}
+
 }
 
 + NdefGui {
@@ -86,7 +99,8 @@
 		overflow = (newKeys.size - numItems).max(0);
 		keysRotation = keysRotation.clip(0, overflow);
 		newKeys = newKeys.drop(keysRotation).keep(numItems);
-		currSpecs = newKeys.collect{ |key| [key, this.getSpec(key)] };
+		currSpecs = newKeys.collect{ |key|
+			[key, this.getSpec(key, object[key])] };
 
 		^(  object: object,
 			editKeys: newKeys,
