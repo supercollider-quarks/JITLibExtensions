@@ -31,17 +31,36 @@ Halo : Library {
 		^Halo.at(this, *keys);
 	}
 
+	clearHalo { Halo.lib.put(this, nil) }
+
+	adieu {
+		this.clear;
+		this.releaseDependants;
+		this.clearHalo;
+	}
+
+	release {
+		this.releaseDependants;
+		this.clearHalo;
+	}
+
 	checkSpec {
 		var specs = Halo.at(this, \spec);
 		if (specs.isNil) {
 			specs = ().parent_(Spec.specs);
 			Halo.put(this, \spec, specs);
+			this.addDependant({ |who, what|
+				if (what == \clear) {
+					this.releaseDependants;
+					this.clearHalo;
+				};
+			});
 		};
 		^specs
 	}
 
-		// these will be a common use case,
-		// others could be done similarly:
+	// the ones for specs will be a common use case,
+	// others could be done similarly:
 	addSpec { |name, spec|
 		this.checkSpec;
 		if (name.notNil) {
@@ -65,11 +84,11 @@ Halo : Library {
 		^Halo.at(this, \tag, name);
 	}
 
-	// categories also have weights, maybe
+	// categories also have weights
 	addCat { |name, weight = 1|
 		Halo.put(this, \cat, name, weight);
 	}
-		// returns tag weight
+		// returns cat weight
 	getCat { |name|
 		if (name.isNil) { ^Halo.at(this, \cat) };
 		^Halo.at(this, \cat, name);
