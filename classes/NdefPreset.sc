@@ -1,5 +1,38 @@
+NodeProxyPreset : ProxyPreset {
 
-NdefPreset : ProxyPreset {
+	*proxyClass { ^NodeProxy }
+
+	*new { |obj, namesToStore, settings, specs, morphFuncs|
+
+		var res, proxy;
+		if (obj.isKindOf(this.proxyClass)) {
+			proxy = obj;
+			res = super.new(proxy, namesToStore,
+				settings, specs, morphFuncs);
+			res.currFromProxy;
+		} {
+			"NodeProxyPreset: object not a NodeProxy.".postln;
+		};
+		^res
+	}
+
+	proxy_ { |px|
+		if (px.isKindOf(this.proxyClass)) {
+			proxy = px;
+			this.useHalo(proxy);
+			// properly init state
+			this.currFromProxy;
+			currSet = targSet = this.getSet(\curr);
+			this.setPath;
+		};
+	}
+
+	// DIFFERENT FROM other ProxyPresets
+	getFromProxy { |except| ^proxy.getKeysValues(except) }
+
+}
+
+NdefPreset : NodeProxyPreset {
 
 	classvar <all;
 	var <key;
@@ -20,7 +53,7 @@ NdefPreset : ProxyPreset {
 
 		if (res.isNil) {
 			// find proxy with same name
-			proxy = Ndef.dictFor(Server.default)[key];
+			proxy = this.proxyClass.dictFor(Server.default)[key];
 
 			if (proxy.notNil) {
 				res = super.new(proxy, namesToStore,
@@ -39,7 +72,7 @@ NdefPreset : ProxyPreset {
 	}
 
 	proxy_ { |px|
-		if (px.isKindOf(Ndef)) {
+		if (px.isKindOf(this.proxyClass)) {
 			proxy = px;
 			this.useHalo(proxy);
 			// properly init state
@@ -48,9 +81,6 @@ NdefPreset : ProxyPreset {
 			this.setPath;
 		};
 	}
-
-	// DIFFERENT FROM other ProxyPresets
-	getFromProxy { |except| ^proxy.getKeysValues(except) }
 
 	storeArgs { ^[key] }
 	printOn { | stream | ^this.storeOn(stream) }

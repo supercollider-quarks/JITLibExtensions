@@ -37,7 +37,9 @@ NPVoicer {
 		if (usesSpawn.not) { proxy.put(0, nil) };
 		synthDesc = SynthDescLib.global[synCtl.source];
 		// know whether sounds will end by themselves
-		hasGate = synthDesc.hasGate;
+		if (synthDesc.notNil) {
+			hasGate = synthDesc.hasGate;
+		};
 	}
 
 	put { | key, args |
