@@ -209,7 +209,7 @@ ProxyPreset {
 	}
 
 	loadSettings { |path, clear = false|
-		path = path ?? { this.storePath };
+		path = path ?? { this.storePath ?? { this.setPath; this.storePath } };
 		if (clear) { settings.clear };
 		this.addSettings(path.load);
 	}

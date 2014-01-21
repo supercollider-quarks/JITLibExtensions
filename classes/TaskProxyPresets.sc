@@ -26,6 +26,9 @@ TdefPreset : ProxyPreset {
 				res = super.new(proxy, namesToStore,
 					settings, specs, morphFuncs).prAdd(key);
 				res.currFromProxy;
+				// by default, store to disk, next to the
+				// code file from which the preset was loaded.
+				res.storeToDisk_(true).setPath;
 			} {
 				"% - no preset or proxy found.\n".postf(this.proxyClass);
 			};
@@ -80,6 +83,9 @@ PdefPreset : ProxyPreset {
 				res = super.new(proxy, namesToStore,
 					settings, specs, morphFuncs)
 				.prAdd(key);
+				// by default, store to disk, next to the
+				// code file from which the preset was loaded.
+				res.storeToDisk_(true).setPath;
 				res.currFromProxy;
 			} {
 				"% - no preset or proxy found.\n".postf(this.proxyClass);

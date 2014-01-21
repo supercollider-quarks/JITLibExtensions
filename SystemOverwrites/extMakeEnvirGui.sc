@@ -1,3 +1,15 @@
++ Spec {
+	*guess { |key, value|
+		if (value.isKindOf(SimpleNumber).not) { ^nil };
+
+		^if (value.abs > 0) {
+			[value/20, value*20, \exp].asSpec
+		} {
+			[-2, 2, \lin].asSpec
+		};
+	}
+}
+
 + TaskProxy {
 	controlKeys {
 		var cKeys = this.getHalo(\orderedNames);
@@ -52,14 +64,18 @@
 
 	// overwriting global getSpec to get local specs
 	// this and useHalo depend on Halo class (in JITLibExtensions)
+	// precedence: the object's halo, the objects owner's halo,
+	// global Spec.specs, envirgui local specs, or guess
 	getSpec { |key, value|
-		var spec =
-		object.getHalo(\spec, key)
-		      // plug halo of e.g. a tdef into specs.parent
-		?? { if (specs.parent.notNil) { specs.parent[key] } }
-		?? { specs[key] }
-		?? { Spec.specs[key] }
-		?? { Spec.guess(key, value) };
+		var spec = object.getHalo(\spec, key)
+		      // specs.parent may be the halo of e.g. a tdef that owns the envir
+		?? { if (specs.parent.notNil) { specs.parent[key] }
+			?? { Spec.specs[key]
+				?? { specs[key]
+					?? { Spec.guess(key, value) };
+				}
+			}
+		};
 		^spec
 	}
 
@@ -76,14 +92,15 @@
 		if (object.isNil) { specs.clear; ^this };
 
 		editKeys.do { |key, i|
-			var currValue = object[key];
-			var newSpec = this.getSpec(key, currValue);
+			var currVal, newSpec;
 			var widge = widgets[i];
-			if (newSpec != specs[key]) {
-				specs.put(key, newSpec);
-				if (widge.isKindOf(EZSlider) or: { widge.isKindOf(EZRanger) }) {
-					widge.controlSpec = newSpec;
-					widge.value_(currValue);
+			if (widge.isKindOf(EZSlider) or: { widge.isKindOf(EZRanger) }) {
+				currVal = object[key];
+				newSpec = this.getSpec(key, currVal);
+				if (newSpec != widge.controlSpec) {
+					widge.controlSpec_(newSpec);
+					widge.value_(currVal);
+					specs.put(key, newSpec);
 				};
 			};
 		}
