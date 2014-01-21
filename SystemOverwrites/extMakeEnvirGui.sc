@@ -82,14 +82,12 @@
 	useHalo { |haloObject|
 		var objSpecs;
 		if (haloObject.isNil) { ^this };
-		objSpecs = haloObject.getSpec.postln;
+		objSpecs = haloObject.getSpec;
 		specs.parent_(objSpecs);
-		this.updateSliderSpecs;
+		this.checkUpdate;
 	}
 
 	updateSliderSpecs { |editKeys|
-
-		if (object.isNil) { specs.clear; ^this };
 
 		editKeys.do { |key, i|
 			var currVal, newSpec;
@@ -100,15 +98,45 @@
 				if (newSpec != widge.controlSpec) {
 					widge.controlSpec_(newSpec);
 					widge.value_(currVal);
-					specs.put(key, newSpec);
 				};
 			};
 		}
 	}
 
+	checkForSpecs { |editKeys|
+
+		var newSpec, newSpecsFound = false;
+		if (object.isNil) { specs.clear; ^this };
+
+		object.keysValuesDo { |key, val|
+			if (val.isKindOf(SimpleNumber)){
+				newSpec = this.getSpec(key, val);
+				if (newSpec != specs[key]) {
+					specs.put(newSpec);
+					newSpecsFound = true;
+				};
+			} {
+				if (val.isKindOf(Array)
+					and: { val.size == 2
+					and: val.every(_.isKindOf(SimpleNumber)) }) {
+					// only if spec pre-exists, no guessing
+					newSpec = this.getSpec(key);
+					if (newSpec != specs[key]) {
+						specs.put(newSpec);
+						newSpecsFound = true;
+					};
+				}
+			}
+		};
+		if (newSpecsFound) {
+			editKeys = editKeys ?? { this.getState[\editKeys] };
+			this.updateSliderSpecs(editKeys);
+		}
+	}
+
 	// also get specs as state that may have changed
 	getState {
-		var newKeys, overflow, currSpecs;
+		var newKeys, overflow;
 
 		if (object.isNil) { ^(editKeys: [], overflow: 0, keysRotation: 0) };
 
@@ -116,14 +144,13 @@
 		overflow = (newKeys.size - numItems).max(0);
 		keysRotation = keysRotation.clip(0, overflow);
 		newKeys = newKeys.drop(keysRotation).keep(numItems);
-		currSpecs = newKeys.collect{ |key|
-			[key, this.getSpec(key, object[key])] };
+		// currSpecs = newKeys.collect{ |key|
+		// [key, this.getSpec(key, object[key])] };
 
-		^(  object: object,
+		^(  object: object.copy,
 			editKeys: newKeys,
 			overflow: overflow,
-			keysRotation: keysRotation,
-			specs: currSpecs
+			keysRotation: keysRotation
 		)
 	}
 
@@ -132,6 +159,7 @@
 		var newState = this.getState;
 		var newKeys = newState[\editKeys];
 
+		this.checkForSpecs(newKeys);
 		this.updateButtons;
 
 		if (doFull.not and: { newState == prevState }) {
@@ -160,9 +188,7 @@
 			if (newState[\overflow] == 0) { this.clearFields(newKeys.size) };
 		};
 
-		this.updateSliderSpecs(newKeys);
-
-		prevState = newState.put(\object, object.copy);
+		prevState = newState;
 	}
 }
 

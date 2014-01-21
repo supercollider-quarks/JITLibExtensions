@@ -39,11 +39,6 @@ Halo : Library {
 		this.clearHalo;
 	}
 
-	release {
-		this.releaseDependants;
-		this.clearHalo;
-	}
-
 	checkSpec {
 		var specs = Halo.at(this, \spec);
 		if (specs.isNil) {
