@@ -41,16 +41,22 @@ Halo : Library {
 
 	checkSpec {
 		var specs = Halo.at(this, \spec);
-		if (specs.isNil) {
-			specs = ().parent_(Spec.specs);
-			Halo.put(this, \spec, specs);
-			this.addDependant({ |who, what|
-				if (what == \clear) {
-					this.releaseDependants;
-					this.clearHalo;
-				};
-			});
+		if (specs.notNil) { ^specs };
+
+		specs = ();
+		if (this.isKindOf(Class)) {
+			specs.parent_(Spec.specs);
+		} {
+			specs.parent_(this.class.checkSpec);
 		};
+
+		Halo.put(this, \spec, specs);
+		this.addDependant({ |who, what|
+			if (what == \clear) {
+				this.releaseDependants;
+				this.clearHalo;
+			};
+		});
 		^specs
 	}
 
