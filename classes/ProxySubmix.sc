@@ -1,3 +1,6 @@
+// temporary solution for postfader submixing
+// when/if proxies use volume busses, this will change.
+
 ProxySubmix : Ndef {
 
 	var <skipjack, <proxies, <sendNames, <volBusses;
@@ -12,7 +15,7 @@ ProxySubmix : Ndef {
 		^res
 	}
 
-	addMix { |proxy, sendLevel = 0.25, postVol = true, mono = true|
+	addMix { |proxy, sendLevel = 0.25, postVol = true, mono = false|
 
 		var indexInMix, sendName, volBus;
 		this.checkInit;
@@ -33,8 +36,9 @@ ProxySubmix : Ndef {
 
 		this.put(indexInMix, {
 			var source, levelCtl;
-			source = proxy.ar;
-			if (mono) { source = source.asArray.sum };
+			source = NumChannels.ar(proxy.ar,
+				if(mono) { 1 } { this.numChannels }
+			);
 			levelCtl = sendName.kr(sendLevel);
 			if (postVol) {
 				levelCtl = levelCtl * volBus.kr;
@@ -57,9 +61,24 @@ ProxySubmix : Ndef {
 	}
 
 	updateVols {
-		proxies.do { |proxy, i|
-			var volBus = volBusses[i];
-			if (volBus.notNil) { volBus.set(proxy.vol) }
+		// collect all setmessages and send as one bundle
+		// to reduce osc traffic
+		server.bind {
+			proxies.do { |proxy, i|
+				var volBus = volBusses[i];
+				if (volBus.notNil) { volBus.set(proxy.vol) }
+			};
 		};
+	}
+
+	clear {
+		proxies.clear;
+		sendNames.clear;
+		volBusses.do(_.free);
+		volBusses.clear;
+
+		skipjack.stop;
+		skipjack = nil;
+		^super.clear;
 	}
 }
