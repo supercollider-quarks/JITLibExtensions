@@ -72,7 +72,7 @@ Halo : Library {
 	getSpec { |name|
 		var specs = this.checkSpec;
 		if (name.isNil) { ^specs };
-		^specs.at(name);
+		^(specs.at(name) ?? {name.asSpec});
 	}
 
 
