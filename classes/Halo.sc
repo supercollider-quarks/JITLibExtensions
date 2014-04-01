@@ -62,10 +62,12 @@ Halo : Library {
 
 	// the ones for specs will be a common use case,
 	// others could be done similarly:
-	addSpec { |name, spec|
+	addSpec { |...pairs|
 		this.checkSpec;
-		if (name.notNil) {
-			Halo.put(this, \spec, name, spec.asSpec);
+		if (pairs.notNil) {
+			pairs.pairsDo { |name, spec|
+				Halo.put(this, \spec, name, spec.asSpec);
+			}
 		};
 	}
 

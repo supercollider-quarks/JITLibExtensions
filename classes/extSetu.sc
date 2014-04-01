@@ -1,10 +1,11 @@
 + NodeProxy {
 
-	mapPairs { |pairs|
+	mapPairs { |pairs, bipolar = false|
 		var mappedPairs = [];
 		pairs.pairsDo { |param, val, i|
 			var spec = this.getSpec(param);
 			if (spec.notNil) {
+				if(bipolar) { val = val.biuni };
 				mappedPairs = mappedPairs ++ [param, spec.map(val)];
 			} {
 				(this.asString + thisMethod.asString + ":\n"
@@ -18,18 +19,20 @@
 	//
 	// }
 
-	setu { | ... args |
-		this.set(*this.mapPairs(args));
-	}
+	setUni { |...args| this.set(*this.mapPairs(args)); }
+	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
+
+	setu { | ... args | this.set(*this.mapPairs(args)); }
 }
 
 + PatternProxy {
 
-	mapPairs { |pairs|
+	mapPairs { |pairs, bipolar = false|
 		var mappedPairs = [];
 		pairs.pairsDo { |param, val, i|
 			var spec = this.getSpec(param);
 			if (spec.notNil) {
+				if(bipolar) { val = val.biuni };
 				mappedPairs = mappedPairs ++ [param, spec.map(val)];
 			} {
 				(this.asString + thisMethod.asString + ":\n"
@@ -39,7 +42,8 @@
 		^mappedPairs;
 	}
 
-	setu { | ... args |
-		this.set(*this.mapPairs(args));
-	}
+	setUni { |...args| this.set(*this.mapPairs(args)); }
+	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
+
+	setu { | ... args | this.set(*this.mapPairs(args)); }
 }
