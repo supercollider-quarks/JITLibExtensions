@@ -5,9 +5,9 @@ related:: NodeProxy, Ndef, ProxySpace, ProxyMixer, ProxyChain
 
 DESCRIPTION::
 For effects proxies, it is useful to create submixes of proxies.
-as the proxy monitor does not create a separate final signal 
+as the proxy monitor does not create a separate final signal
 of the proxy (for efficiency reasons), ProxySubmix can create
-this flexibly when needed to provide a post-fader signal. 
+this flexibly when needed to provide a post-fader signal.
 
 code::
 // best explained by examples:
@@ -16,7 +16,8 @@ p = ProxySpace.push(s.boot);
 
 // make a ProxySubmix
 m = ProxySubmix(\revin);
-// have to initialise it, here to mono
+
+// initialise num channels, here to mono
 m.ar(1);
 
 // one can add it to the proxyspace if desired:
@@ -30,32 +31,30 @@ p.envir.put(\revin, m);
 m.addMix(~a, postVol: true); // include vol value of ~a
 m.addMix(~b, postVol: true); //
 
+// make a crummy reverb
+~rev = { CombL.ar(m.ar, 0.05, [0.03, 0.02], 3) };
+~rev.play;
+
+
+
 // internal - check they are registered
 m.proxies;
 m.volBusses;
 
-// make a crummy reverb
-~rev = {
-	// m.ar should work as well, but does not. why?
-	var in = m.ar;
-	CombL.ar(in, 0.05, [0.03, 0.02], 3)
-};
 
-~rev.play;
-
-// test with guis
-ProxyMixer(p);
 
 NdefGui(m, 8); // gets these params automagically:
 //	snd_a
 //	snd_b
-//	// new ones show up here when added,
-//	// then at the end:
-//	lev_ALL // level control for sum
-
-// add a 3rd sound for testing
+//	// new ones show up here when added:
 ~c = { Ringz.ar(Impulse.ar(1), LFDNoise3.kr(1, 800, 1200), 0.02) }; ~c.play;
 m.addMix(~c);
+
+// and one can add send level control if desired
+m.addLevel;
+
+//	which shows up at the end, as lev_ALL.
+
 ::
 
 INSTANCEMETHODS::
@@ -85,7 +84,7 @@ ARGUMENT:: mono
 flag whether to create mono sends
 
 METHOD:: ar
-used to initialise number of channes 
+used to initialise number of channes
 
 ARGUMENT:: numChannels
 
