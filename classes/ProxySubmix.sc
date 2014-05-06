@@ -5,20 +5,21 @@ ProxySubmix : Ndef {
 
 	var <skipjack, <proxies, <sendNames, <volBusses;
 
-	ar { |numChans(this.numChannels ? 1), addMasterSend = true|
-		var res = super.ar(numChans); // initialize if not done yet
-		if (addMasterSend) {
-			this.put(1001, { |lev_ALL = 1|
-				ReplaceOut.ar(bus, bus.ar * lev_ALL.lag(0.05));
-			});
-		}
-		^res
+	addLevel { |lev_ALL = 1, masterNodeID = 1001|
+		// if needed, init with default numChannels from NodeProxy
+		if (this.isNeutral) { this.ar };
+
+		this.put(masterNodeID, {
+			ReplaceOut.ar(bus,
+				bus.ar * \lev_ALL.kr(lev_ALL).lag(0.05)
+			);
+		});
 	}
 
 	addMix { |proxy, sendLevel = 0.25, postVol = true, mono = false|
 
 		var indexInMix, sendName, volBus;
-		this.checkInit;
+		this.checkInit(proxy);
 
 		if (proxies.includes(proxy)) { ^this };
 
@@ -47,7 +48,9 @@ ProxySubmix : Ndef {
 		});
 	}
 
-	checkInit {
+	checkInit { |proxy|
+		if (this.isNeutral) { this.ar(proxy.numChannels) };
+
 		if (proxies.isNil) {
 			proxies = [];
 			sendNames = [];
