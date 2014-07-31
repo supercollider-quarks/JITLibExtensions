@@ -1,3 +1,4 @@
+
 + NodeProxy {
 
 	mapPairs { |pairs, bipolar = false|
@@ -15,13 +16,21 @@
 		^mappedPairs;
 	}
 
-	// getu {
-	//
-	// }
-
 	setUni { |...args| this.set(*this.mapPairs(args)); }
 	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
 
+
+	getUni { |name|
+		var normVal;
+		var val = this.get(name);
+		var spec = this.getSpec(name);
+		if (val.notNil and: { spec.notNil }) {
+			normVal = spec.unmap(val);
+		};
+
+		^normVal
+	}
+	// back compatibility only
 	setu { | ... args | this.set(*this.mapPairs(args)); }
 }
 
@@ -45,5 +54,6 @@
 	setUni { |...args| this.set(*this.mapPairs(args)); }
 	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
 
+	// back compatibility only
 	setu { | ... args | this.set(*this.mapPairs(args)); }
 }

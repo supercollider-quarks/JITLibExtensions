@@ -137,7 +137,7 @@ BufEnvir : EnvironmentRedirect {
 		paths = pathMatch(searchPath);
 		paths.do { |path|
 			var key = difference(path, commonPath);
-			key = key.splitext.first.asSymbol;
+			key = key.splitext.first.reject(_ == $/).asSymbol;
 			func.value(key, path);
 		}
 	}
