@@ -57,3 +57,9 @@
 	// back compatibility only
 	setu { | ... args | this.set(*this.mapPairs(args)); }
 }
+
++ NPVoicer {
+	setUniAt { | index ... args |
+		proxy.setAt(index, * proxy.mapPairs(args));
+ 	}
+}
