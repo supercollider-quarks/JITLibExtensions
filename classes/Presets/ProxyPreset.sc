@@ -226,6 +226,11 @@ ProxyPreset {
 		};
 
 		file = File(path, "w");
+		if (file.isOpen.not) {
+			"% cannot open file at path %.\n".postf(this, path);
+			^this
+		};
+
 		file.write(this.settings.asCompileString);
 		file.close;
 	}
@@ -242,7 +247,7 @@ ProxyPreset {
 		};
 
 		if (except.notNil) {
-			set = set.reject{ |pair| except.includes(pair[0]); };
+			set = set.reject { |pair| except.includes(pair[0]); };
 		};
 
 		randKeysVals = set.collect { |pair|
