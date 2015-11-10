@@ -261,7 +261,7 @@ ProxyPreset {
 						(normVal + rand).min(1)
 					);
 					[key, spec.map(randVal)];
-				}, {
+				} {
 					"no spec: %\n".postf([key, val]);
 				};
 			};
