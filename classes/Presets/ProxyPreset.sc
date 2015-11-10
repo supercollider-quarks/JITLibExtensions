@@ -1,5 +1,5 @@
 // proxy has an envir for parameters
-// typically nuemrical, may also be different.
+// typically numerical, may also be different.
 // if different, special handling needed.
 // ProxyPreset
 
@@ -82,7 +82,7 @@ ProxyPreset {
 			};
 		};
 
-			// settings and morphFuncs belong to preset:
+		// settings and morphFuncs belong to preset:
 		settings = settings ?? { List[] };
 	}
 
@@ -238,9 +238,9 @@ ProxyPreset {
 
 	// randomize settings:
 
-	randSet { |rand=0.25, startSet, except|
+	randSet { |rand=0.25, startSet, except, seed|
 
-		var randKeysVals, set, randRange;
+		var randKeysVals, set, randRange, oldRandData;
 		// vary any given set too?
 		set = this.getSet(startSet).value ?? {
 			this.getFromProxy(except);
@@ -249,40 +249,47 @@ ProxyPreset {
 		if (except.notNil) {
 			set = set.reject { |pair| except.includes(pair[0]); };
 		};
+		{
+			randKeysVals = set.collect { |pair|
+				var key, val, normVal, randVal, spec;
+				#key, val = pair;
+				spec = proxy.getSpec(key);
+				if (spec.notNil) {
+					normVal =  spec.unmap(val);
+					randVal = rrand(
+						(normVal - rand).max(0),
+						(normVal + rand).min(1)
+					);
+					[key, spec.map(randVal)];
+				}, {
+					"no spec: %\n".postf([key, val]);
+				};
+			};
+		}.valueSeed(seed);
 
-		randKeysVals = set.collect { |pair|
-			var key, val, normVal, randVal, spec;
-			#key, val = pair;
-			spec = proxy.getSpec(key);
-			if (spec.notNil, {
-				normVal =  spec.unmap(val);
-				randVal = rrand(
-					(normVal - rand).max(0),
-					(normVal + rand).min(1)
-				);
-				// [key, val, normVal].postcs;
-				[key, spec.map(randVal)];
-			}, { "no spec: ".post;
-				[key, val].postcs });
-		};
 		^randKeysVals;
 	}
 
 
-	someRand { |rand=0.1, ratio = 0.5|
+	someRand { |rand=0.1, ratio = 0.5, seed|
 
+		var namesToDrop, oldRandData;
 		var keys = namesToStore;
 		var numToKeep = (keys.size * ratio).clip(1, keys.size).round(1).asInteger;
-		var namesToDrop = keys.scramble.drop(keys.size - numToKeep);
-		this.setRand(rand, except: namesToDrop);
+
+		{
+			namesToDrop = keys.scramble.drop(keys.size - numToKeep);
+			this.setRand(rand, except: namesToDrop.postln, seed: seed);
+
+		}.valueSeed(seed);
+
 	}
 
-	setRand { |rand, startSet, except|
+	setRand { |rand, startSet, except, seed|
 		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except).flat);
+		proxy.set(*this.randSet(rand, startSet, except, seed).flat);
 		this.prepMorph;
 	}
-
 
 	// morphing:
 	blendSets { |blend = 0.5, set1, set2|
@@ -408,12 +415,12 @@ ProxyPreset {
 		^win
 	}
 
-	 specsDialog { |keys, specDict|
+	specsDialog { |keys, specDict|
 
 		var w, loc, name, proxyKeys, specKeys;
 		specDict = specDict ? specs;
 
-		 loc = loc ?? {400@300};
+		loc = loc ?? {400@300};
 		w = Window("specs please", Rect(loc.x, loc.y + 40, 300, 200)).front;
 		w.addFlowLayout;
 		StaticText(w, Rect(0,0,290,50)).align_(\center)
@@ -429,8 +436,8 @@ ProxyPreset {
 				var spec = ez.value.asSpec;
 				specDict.put(key, spec);
 				[key, spec].postcs;
-				},
-				guessedSpec
+			},
+			guessedSpec
 			);
 		};
 	}
