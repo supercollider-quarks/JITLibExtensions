@@ -148,6 +148,19 @@ ProxyPreset {
 		^if (index.notNil) { settings[index] } { nil };
 	}
 
+	getSetNorm { |name|
+		^this.getSet(name).value
+		.collect { |pair|
+			var name, val; #name, val = pair;
+			[name, proxy.getSpec(name).unmap(val)];
+		}
+	}
+
+	setRelFrom { |name, values|
+		var newSettings = this.getSetNorm(name) + values;
+		proxy.setUni(*newSettings.flat);
+	}
+
 	setCurr { |name|
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
