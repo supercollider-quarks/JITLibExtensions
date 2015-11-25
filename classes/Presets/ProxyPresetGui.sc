@@ -182,6 +182,7 @@ ProxyPresetGui : JITGui {
 		};
 
 		if (proxyGui.notNil) { proxyGui.checkUpdate; };
+		prevState = newState;
 	}
 }
 

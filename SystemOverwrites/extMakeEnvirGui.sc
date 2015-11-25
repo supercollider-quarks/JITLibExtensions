@@ -68,13 +68,16 @@
 	// global Spec.specs, envirgui local specs, or guess
 	getSpec { |key, value|
 		var spec = object.getHalo(\spec, key)
-		      // specs.parent may be the halo of e.g. a tdef that owns the envir
+		// specs.parent may be the halo of e.g. a tdef that owns the envir
 		?? { if (specs.parent.notNil) { specs.parent[key] }
 			?? { Spec.specs[key]
-				?? { specs[key]
-					?? { Spec.guess(key, value) };
-				}
+				?? { specs[key] }
 			}
+		};
+		if (spec.isNil) {
+			spec = Spec.guess(key, value);
+			// can still be nil
+			specs.put(key, spec);
 		};
 		^spec
 	}
@@ -155,14 +158,14 @@
 	}
 
 	// also updateSliderSpecs
-	checkUpdate { |doFull = false|
+	checkUpdate {
 		var newState = this.getState;
 		var newKeys = newState[\editKeys];
 
-		this.checkForSpecs(newKeys);
+		// this.checkForSpecs(newKeys);
 		this.updateButtons;
 
-		if (doFull.not and: { newState == prevState }) {
+		if (newState == prevState) {
 			prevState = newState;
 			^this
 		};

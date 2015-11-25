@@ -2,7 +2,7 @@
 // can have an ordered List of param names,
 // uses Halo to access Tdef's own specs.
 // even a little window to reorder.
-// could eventually be used in TdefGui/PdefGui.
+// used in TdefGui/PdefGui when using JITLibExtensions.
 
 ParamGui : EnvirGui {
 
@@ -109,7 +109,7 @@ ParamGui : EnvirGui {
 		currSpecs = newKeys.collect{ |key| [key, this.getSpec(key, object[key])] };
 
 		^(
-			object: object,
+			object: object.copy,
 			editKeys: newKeys,
 			overflow: overflow,
 			keysRotation: keysRotation,
