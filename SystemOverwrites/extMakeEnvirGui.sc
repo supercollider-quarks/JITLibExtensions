@@ -67,7 +67,7 @@
 	// precedence: the object's halo, the objects owner's halo,
 	// global Spec.specs, envirgui local specs, or guess
 	getSpec { |key, value|
-		var spec = object.getHalo(\spec, key)
+		var spec = object.getSpec(key)
 		// specs.parent may be the halo of e.g. a tdef that owns the envir
 		?? { if (specs.parent.notNil) { specs.parent[key] }
 			?? { Spec.specs[key]
@@ -94,7 +94,7 @@
 
 		editKeys.do { |key, i|
 			var currVal, newSpec;
-			var widge = widgets[i];
+			var widge = this.widgets[i];
 			if (widge.isKindOf(EZSlider) or: { widge.isKindOf(EZRanger) }) {
 				currVal = object[key];
 				newSpec = this.getSpec(key, currVal);
@@ -268,7 +268,7 @@
 		editKeys.do { |key, i|
 			var currValue = currState.detect { |pair| pair[0] == key }[1];
 			var newSpec = this.getSpec(key, currValue);
-			var widge = widgets[i];
+			var widge = this.widgets[i];
 			if (newSpec != specs[key]) {
 				specs.put(key, newSpec);
 				if (widge.isKindOf(EZSlider) or:
