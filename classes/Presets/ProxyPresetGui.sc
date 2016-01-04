@@ -167,14 +167,15 @@ ProxyPresetGui : JITGui {
 			setLPop.items = newState[\setNames];
 			setRPop.items = newState[\setNames];
 		};
-		if (prevState[\currIndex] != newState[\currIndex]) {
-			setLPop.value = newState[\currIndex];
-			setLBox.value = newState[\currIndex];
 
+		if (prevState[\currIndex] != newState[\currIndex]) {
+			setLPop.value = newState[\currIndex] ? 0;
+			setLBox.value = newState[\currIndex] ? 0;
 		};
+
 		if (prevState[\targIndex] != newState[\targIndex]) {
-			setRPop.value = newState[\targIndex];
-			setRBox.value = newState[\targIndex];
+			setRPop.value = newState[\targIndex] ? -1;
+			setRBox.value = newState[\targIndex] ? -1;
 		};
 
 		if (prevState[\morphVal] != newState[\morphVal]) {
