@@ -72,11 +72,12 @@ Halo : Library {
 	}
 
 	getSpec { |name|
-		var specs = this.checkSpec;
+		var spec;
+		var specs = Halo.at(this, \specs);
 		if (name.isNil) { ^specs };
-		^(specs.at(name) ?? {name.asSpec});
+		if (specs.notNil) { spec = specs.at(name) };
+		^spec ?? { name.asSpec }
 	}
-
 
 	addTag { |name, weight = 1|
 		Halo.put(this, \tag, name, weight);
