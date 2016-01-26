@@ -11,6 +11,7 @@ Halo : Library {
 
 	*put { |...args|
 		lib.put(*args);
+		args[0].changed(*args[1..]);
 	}
 
 	*at { | ... keys| ^lib.at(*keys); }
@@ -73,7 +74,7 @@ Halo : Library {
 
 	getSpec { |name|
 		var spec;
-		var specs = Halo.at(this, \specs);
+		var specs = Halo.at(this, \spec);
 		if (name.isNil) { ^specs };
 		if (specs.notNil) { spec = specs.at(name) };
 		^spec ?? { name.asSpec }
