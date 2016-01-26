@@ -11,6 +11,7 @@ Halo : Library {
 
 	*put { |...args|
 		lib.put(*args);
+		args[0].changed(*args[1..]);
 	}
 
 	*at { | ... keys| ^lib.at(*keys); }
