@@ -14,7 +14,7 @@
 	controlKeys {
 		var cKeys = this.getHalo(\orderedNames);
 		if (cKeys.notNil) { ^cKeys };
-		cKeys = if (envir.notNil) { envir.keys.asArray.sort } { [] };
+		cKeys = if (envir.notNil) { envir.keys(Array).sort } { [] };
 		^cKeys;
 	}
 }
