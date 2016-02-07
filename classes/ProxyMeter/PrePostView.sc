@@ -1,11 +1,12 @@
 
 PrePostView {
-	classvar <>preCol, <>postCol;
+	classvar <>preCol, <>postCol, <>satCol;
 	var <uv, <preAmp = 0, <postAmp = 0;
 
 	*initClass {
 		preCol = Color.yellow(1.0, 0.4);
 		postCol = Color.green(0.7, 0.4);
+		satCol = Color.red(1, 0.6);
 	}
 
 	*new { |parent, bounds|
@@ -28,15 +29,22 @@ PrePostView {
 		uv.drawFunc = { |uv|
 			var bounds = uv.bounds;
 			var maxwid = bounds.width - 4;
-			var height =bounds.height - 4;
+			var height = bounds.height - 4;
+			var satLeft;
 
 			Pen.color_(preCol);
-			Pen.addRect(Rect(2,2,preAmp * maxwid, height));
+			Pen.addRect(Rect(2,2, preAmp * maxwid, height));
 			Pen.fill;
 
 			Pen.color_(postCol);
 			Pen.addRect(Rect(2,2, postAmp * maxwid, height));
 			Pen.fill;
+			if (postAmp > 1.0) {
+				Pen.color_(satCol);
+				satLeft = (1 - (postAmp - 1).clip(0, 1)) * maxwid;
+				Pen.addRect(Rect( satLeft, 2, maxwid, height));
+				Pen.fill;
+			};
 		};
 	}
 
