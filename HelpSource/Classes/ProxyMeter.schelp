@@ -35,12 +35,15 @@ m = ProxyMixer(p, 8);
 	// show pre- and post volume amps on the sliders
 ProxyMeter.addMixer(m);
 
-	// CARFUL - THIS IS LOUD!
-	// make ~x exceed +-1, this would create
-	// digital clipping when s.volume.volume is on 0dB:
+	// see CLIPPING WARNING - CAREFUL, THIS IS LOUD!
+	// when level of ~x exceeds +-1, this would create
+	// digital clipping when s.volume.volume is full on.
+	// so turn down master for safety
 s.volume.volume = -12;
+	// now watch nodeproxy level going up to +2 go red:
 ~x = { SinOsc.ar(0.13).abs * BrownNoise.ar * 2 };
-~x.vol_(0.8);
+	// when when post-monitor level also exceeds 1, deep red:
+~x.vol_(0.7);
 
 	// where the proxy meter instances live
 ProxyMeter.all;
