@@ -73,7 +73,7 @@ Halo : Library {
 
 	getSpec { |name|
 		var spec;
-		var specs = Halo.at(this, \spec);
+		var specs = Halo.at(this, \specs);
 		if (name.isNil) { ^specs };
 		if (specs.notNil) { spec = specs.at(name) };
 		^spec ?? { name.asSpec }
