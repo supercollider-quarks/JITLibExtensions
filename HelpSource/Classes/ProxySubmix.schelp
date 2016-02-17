@@ -67,9 +67,6 @@ the names of the send level controls
 
 private:: makeSkip, skipjack, updateVols, checkInit
 
-METHOD:: volBusses
-the volume busses for the proxies. may disappear
-
 METHOD:: addMix
 add a proxy to be mixed in
 ARGUMENT:: proxy
@@ -82,6 +79,12 @@ ARGUMENT:: postVol
 flag whether to add pre- or post proxy volume level
 ARGUMENT:: mono
 flag whether to create mono sends
+
+METHOD:: removeMix
+Remove a proxy's input from this submix
+ARGUMENT:: proxy
+the proxy to remove (not the proxy's name)
+
 
 METHOD:: ar
 used to initialise number of channes
