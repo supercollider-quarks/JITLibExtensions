@@ -1,7 +1,7 @@
 TITLE:: NPVoicer
 summary:: handle polyphony with nodeproxies
 categories:: Undocumented classes
-related:: JITLib, NodeProxy, Ndef
+related:: Overviews/JITLib, Classes/NodeProxy, Classes/Ndef
 
 DESCRIPTION::
 NPVoicer simplifies the use of polyphony in NodeProxies. One can flexibly play, access and release multiple voices of the same synth source with this wrapper around a nodeproxy.
@@ -56,7 +56,7 @@ can be anything a nodeproxy accepts  as source :
 a SynthDef, a Symbol (synthdef name), a function, ...
 
 ARGUMENT:: useSpawn
-a flag whether to put obj into slot 0. As voicers usually have 
+a flag whether to put obj into slot 0. As voicers usually have
 individual voices and not a preferred front synth, default = false.
 
 METHOD:: synCtl
@@ -70,7 +70,7 @@ the flag whether a new nodeproxy object will play in slot 0 or not.
 
 
 METHOD:: put
-put a new voice into the objects list at 
+put a new voice into the objects list at
 
 ARGUMENT:: key
 at this key, typically a note number. (replaces a playing object there)
@@ -121,26 +121,43 @@ stop the nodeproxy with fadeTime and reset options.
 METHOD:: end
 end the nodeproxy with fadeTime.
 
-METHOD:: set, unset
-set and unset global params of the nodeproxy.
+METHOD:: set
+set global params of the nodeproxy.
+args are key value pairs to set, e.g.  key1, val1, key2, val2, ... keyN, valN
 
-METHOD:: map, unmap
-map and unmap global params of the nodeproxy.
+METHOD:: unset
+unset global params of the nodeproxy.
+keys are the keys to unset, e.g.  key1, key2, keyN
 
-METHOD:: setAt, unsetAt
+METHOD:: map
+map global params of the nodeproxy.
+args are key value pairs to map, e.g.  key1, val1, key2, val2, ... keyN, valN
+
+METHOD:: unmap
+unmap global params of the nodeproxy.
+... keys are the keys to unmap, e.g.  key1, key2, keyN
+
+METHOD:: setAt
 set and unset params at individual playing voices.
+key is the key of the voice to set params of;
+args are key value pairs to map, e.g.  key1, val1, key2, val2, ... keyN, valN
+
+METHOD:: unsetAt
+unset params at individual playing voices.
+key is the key of the voice to unset params of;
+keys are the keys to unset, e.g.  key1, key2, keyN
 
 
 
 EXAMPLES::
 
-	// ToDo - more examples - e.g.: 
+	// ToDo - more examples - e.g.:
 	list::
 ## with KeyPlayer
 ## with MultiTouchPad
 ## with NanoKey - MIDI, play and hold notes
 ## NanoPad - MIDI, trigger perc notes only
-## with Manta controller 
+## with Manta controller
 ##any others?
 ::
 
@@ -236,7 +253,7 @@ Ndef(\a).set(\pan, 1); // this does unset properly
 
 
 
-// do post-processing on the proxy: 
+// do post-processing on the proxy:
 g.proxy.filter(150, { |in| (in * 10).distort * 0.2 });
 g.proxy.put(150);
 
