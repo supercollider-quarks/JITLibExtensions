@@ -20,18 +20,19 @@
 	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
 
 
-	getUni { |name|
+	getUni { |name, val|
 		var normVal;
-		var val = this.get(name);
 		var spec = this.getSpec(name);
+		val = val ?? { this.get(name) };
 		if (val.notNil and: { spec.notNil }) {
 			normVal = spec.unmap(val);
 		};
 
 		^normVal
 	}
-	// back compatibility only
-	setu { | ... args | this.set(*this.mapPairs(args)); }
+
+	getUnis { |names| ^names.collect (this.getUni(_)).unbubble }
+
 }
 
 + PatternProxy {
@@ -54,12 +55,22 @@
 	setUni { |...args| this.set(*this.mapPairs(args)); }
 	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
 
-	// back compatibility only
-	setu { | ... args | this.set(*this.mapPairs(args)); }
+	getUni { |name, val|
+		var normVal;
+		var spec = this.getSpec(name);
+		val = val ?? { this.get(name) };
+		if (val.notNil and: { spec.notNil }) {
+			normVal = spec.unmap(val);
+		};
+
+		^normVal
+	}
+	getUnis { |names| ^names.collect (this.getUni(_)).unbubble }
+
 }
 
 + NPVoicer {
 	setUniAt { | index ... args |
-		proxy.setAt(index, * proxy.mapPairs(args));
+		proxy.setAt(index, *proxy.mapPairs(args));
  	}
 }
