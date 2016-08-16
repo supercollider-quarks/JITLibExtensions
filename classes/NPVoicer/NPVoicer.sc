@@ -30,7 +30,10 @@ NPVoicer {
 	}
 
 	prime { |obj, useSpawn = false|
-		proxy.prime(obj);
+		// // proxy.prime kills playing objects
+		// proxy.prime(obj);
+		// this lets held notes continue when switching synthdef
+		proxy.put(0, obj, 0, nil, false);
 		synCtl = proxy.objects.first;
 		usesSpawn = useSpawn ? usesSpawn;
 		proxy.awake_(usesSpawn.not);
