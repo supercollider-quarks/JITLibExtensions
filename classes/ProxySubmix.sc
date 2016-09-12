@@ -80,7 +80,12 @@ ProxySubmix : Ndef {
 				var volBus;
 				if(item.notNil) {
 					volBus = item[\volBus];
-					if (volBus.notNil) { volBus.set(item[\proxy].vol) };
+					if (volBus.notNil) {
+						volBus.set(
+							item[\proxy].vol
+							* item[\proxy].monitor.isPlaying.binaryValue
+						)
+					};
 				};
 			};
 		};
