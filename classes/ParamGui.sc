@@ -78,7 +78,7 @@ ParamGui : EnvirGui {
 	showName { |name| filterNames !? { filterNames.remove(name) }; }
 
 	getState {
-		var rawKeys, overflow, newKeys, currSpecs;
+		var rawKeys, overflow, newKeys, specsToUse;
 
 		if (object.isNil) { ^(editKeys: [], overflow: 0, keysRotation: 0) };
 
@@ -106,14 +106,14 @@ ParamGui : EnvirGui {
 		overflow = (newKeys.size - numItems).max(0);
 		keysRotation = keysRotation.clip(0, overflow);
 		newKeys = newKeys.drop(keysRotation).keep(numItems);
-		currSpecs = newKeys.collect{ |key| [key, this.getSpec(key, object[key])] };
+		specsToUse = newKeys.collect { |key| this.getSpec(key, object[key]) };
 
 		^(
 			object: object.copy,
 			editKeys: newKeys,
 			overflow: overflow,
 			keysRotation: keysRotation,
-			specs: currSpecs
+			specsToUse: specsToUse
 		)
 	}
 }
