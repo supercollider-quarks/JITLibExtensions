@@ -85,9 +85,8 @@
 		if (localSpec.isNil and: value.notNil) {
 			localSpec = Spec.guess(key, value);
 			specs.put(key, localSpec);
-			^localSpec
 		};
-		^nil
+		^localSpec
 	}
 
 	useHalo { |haloObject|
@@ -111,7 +110,8 @@
 			if (widge.isKindOf(EZSlider) or: { widge.isKindOf(EZRanger) }) {
 				currVal = object[key];
 				newSpec = this.getSpec(key, currVal);
-				if (newSpec != widge.controlSpec) {
+				// "% - newSpec: %\n".postf(thisMethod, newSpec);
+				if (newSpec.notNil and: { newSpec != widge.controlSpec }) {
 					widge.controlSpec_(newSpec);
 					widge.value_(currVal);
 				};
@@ -277,12 +277,14 @@
 
 		editKeys.do { |key, i|
 			var currValue = currState.detect { |pair| pair[0] == key }[1];
+			var oldSpec;
 			var newSpec = this.getSpec(key, currValue);
 			var widge = this.widgets[i];
-			if (newSpec != specs[key]) {
-				specs.put(key, newSpec);
-				if (widge.isKindOf(EZSlider) or:
-					{ widge.isKindOf(EZRanger) }) {
+			if (widge.respondsTo(\controlSpec)) {
+				oldSpec = widge.controlSpec;
+				// "% - newSpec: %\n".postf(thisMethod, newSpec);
+				if (newSpec != oldSpec) {
+					specs.put(key, newSpec);
 					widge.controlSpec = newSpec;
 					widge.value_(currValue);
 				};

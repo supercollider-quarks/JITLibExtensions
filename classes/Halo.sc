@@ -67,7 +67,8 @@ Halo : Library {
 		this.checkSpec;
 		if (pairs.notNil) {
 			pairs.pairsDo { |name, spec|
-				Halo.put(this, \spec, name, spec.asSpec);
+				if (spec.notNil) { spec = spec.asSpec };
+				Halo.put(this, \spec, name, spec);
 			}
 		};
 	}
