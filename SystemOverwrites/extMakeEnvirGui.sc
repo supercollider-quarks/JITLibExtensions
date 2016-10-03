@@ -70,8 +70,11 @@
 	// - if no spec yet, and there is a value, guess a spec
 
 	getSpec { |key, value|
-		var localSpec = specs[key];
-		var objSpec = object.getSpec(key)
+		var localSpec, objSpec;
+		if (key.isNil) { ^specs };
+
+		localSpec = specs[key];
+		objSpec = object.getSpec(key)
 		// specs.parent may be the halo of e.g. a tdef that owns the envir
 		?? { if (specs.parent.notNil) { specs.parent[key] }
 			?? { Spec.specs[key] }
