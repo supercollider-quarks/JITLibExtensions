@@ -252,7 +252,7 @@
 			this.setByKeys(newKeys, newState[\settings]);
 		} {
 			this.setByKeys(newKeys, newState[\settings]);
-			if (newState[\overflow] == 0) { this.clearFields(newKeys.size) };
+			this.clearFields(newKeys.size);
 		};
 
 		if (newState[\specsToUse] != prevState[\specsToUse]) {
