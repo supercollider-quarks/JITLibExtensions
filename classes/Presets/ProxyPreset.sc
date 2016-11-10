@@ -47,40 +47,42 @@ ProxyPreset {
 		};
 	}
 
+	// sync with object halo as well as possible
 	useHalo {
 
 		var haloNames = proxy.getHalo(\namesToStore);
-		var haloSpecs = proxy.getSpec(\spec);
+		var haloSpecs = proxy.addSpec.getSpec; // init them
 
 		if (namesToStore.isNil) {
 			namesToStore = haloNames ?? { proxy.controlKeys.asArray.sort };
 			proxy.addHalo(\namesToStore, namesToStore);
 		} {
 			if (haloNames.notNil) {
-				warn("ProxyPreset: namesToStore given: "
+				warn("%: namesToStore given: ".format(this)
 					+ namesToStore.asCompileString +
 					"\n  and in proxy halo: "
 					+ haloNames.asCompileString ++ "!"
-					"\n  using haloNames.");
+					"\n  using my namesToStore.");
 			} {
+				// sync names back to proxy
 				proxy.addHalo(\namesToStore, namesToStore);
 			};
 		};
 
 		if (specs.isNil) {
-			specs = proxy.getSpec ?? { () };
-			proxy.addHalo(\namesToStore, namesToStore);
+			specs = ();
 		} {
-			if (haloSpecs.notNil) {
+			if (haloSpecs.notEmpty) {
 				warn("ProxyPreset: specs given: "
 					+ specs.asCompileString +
 					"\n  and in proxy halo: "
 					+ haloSpecs.asCompileString ++ "!"
-					"\n  using haloSpecs.");
+					"\n  using my specs.parent_(haloSpecs).");
 			} {
 				proxy.addHalo(\spec, haloSpecs);
 			};
 		};
+		specs.parent = haloSpecs;
 
 		// settings and morphFuncs belong to preset:
 		settings = settings ?? { List[] };
@@ -373,9 +375,15 @@ ProxyPreset {
 	unmapSet { |set|
 		var key, val;
 		^set.collect { |pair|
-
+			var spec;
 			#key, val = pair;
-			[key, specs[key].unmap(val)]
+			spec = specs[key];
+			if (spec.notNil) {
+				[key, spec.unmap(val)]
+			} {
+				"%: no spec for %!\n".postf(thisMethod, key);
+				[]
+			};
 		}
 	}
 
