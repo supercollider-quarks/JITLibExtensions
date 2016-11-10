@@ -253,6 +253,7 @@
 		} {
 			this.setByKeys(newKeys, newState[\settings]);
 			this.clearFields(newKeys.size);
+			this.paintWetParams(newKeys);
 		};
 
 		if (newState[\specsToUse] != prevState[\specsToUse]) {
@@ -268,6 +269,17 @@
 		};
 
 		prevState = newState;
+	}
+
+	paintWetParams { |editKeys|
+		editKeys.do { |key, i|
+			if (replaceKeys[key].notNil) {
+				key.postln;
+				paramViews[i].background_(Color.green);
+			} {
+				paramViews[i].background_(skin.background);
+			}
+		}
 	}
 
 	// compat with pre-3.8 only
