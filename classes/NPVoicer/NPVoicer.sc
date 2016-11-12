@@ -110,7 +110,7 @@ NPVoicer {
 
 	unmap { |...keys|
 		keys = keys.removeAll(indivParams);
-		proxy.map(*keys);
+		proxy.unmap(*keys);
 	}
 
 		// set params individually per node

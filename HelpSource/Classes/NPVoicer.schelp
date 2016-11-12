@@ -181,7 +181,7 @@ w.view.keyDownAction = { |view, char|
     // see also the KeyPlayer quark
 (
 s.latency = nil;
-g = NPVoicer(Ndef(\x), [\freq, \amp, \pan]);
+g = NPVoicer(Ndef(\x), [\freq]);
 g.prime(\default, false);
 g.play;
 
@@ -208,18 +208,33 @@ s.scope; // to see panning
 // play a note
 g.put(60, [\freq, 60.midicps]);
 
-// global set
-g.set(\amp, 0.5);
-g.set(\amp, 0.1);
+// global set - filters indivParams
+g.indivParams;
+// cannot set freq globally:
+g.set(\freq, 62.midicps);
+/// but we can set \amp and \pan
+g.set(\amp, 0.0);
+g.set(\amp, 0.2);
 g.set(\pan, -1);
 g.set(\pan, 1);
-g.unset(\pan); // only works the second time?
+
+// set individual voice with setAt :
+g.setAt(60, \amp, 0.0);
+g.setAt(60, \amp, 0.1);
+g.setAt(60, \pan, -1);
+g.setAt(60, \pan, 1);
+/ can set \freq on indiv. node:
+g.setAt(60, \freq, 62.midicps);
 
 // add a second note
 g.put(79, [\freq, 79.midicps]);
 // set indiv notes 60 to pan left/right
 g.setAt(60, \pan, -1);
 g.setAt(79, \pan, 1);
+
+// check what is playing now
+g.proxy.objects;
+g.proxy.objects.indices;
 
 // autopan
 Ndef(\lfPan, { |lofreq = 0.3| SinOsc.kr(lofreq) * 2 });
@@ -231,11 +246,12 @@ g.setAt(79, \pan, 1);
 
 // a new note still gets autopan
 g.put(87, [\freq, 87.midicps]);
+s.scope;
 
 g.release(60);
 g.release(79);
 
-g.unmap(\pan); // autopan should stop ... not working yet! (why?)
+g.unmap(\pan);
 
 
 // for comparison, test with a plain Ndef:
@@ -249,14 +265,17 @@ Ndef(\a).map(\pan, Ndef(\lfPan));
 Ndef(\a).unmap(\pan); // stops wherever lfo ended
 Ndef(\a).unset(\pan); // unset to default
 
-Ndef(\a).set(\pan, 1); // this does unset properly
-
+Ndef(\a).set(\pan, 1);
+Ndef(\a).end;
 
 
 // do post-processing on the proxy:
 g.proxy.filter(150, { |in| (in * 10).distort * 0.2 });
-g.proxy.put(150);
-
+g.play;
+g.proxy.objects.indices
+g.put(60, [\freq, 60.midicps]);
+g.release(150);
+g.release(60);
 
 ////////// Switch synthdefs while playing: ///////////
 
