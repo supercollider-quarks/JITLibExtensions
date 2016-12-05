@@ -197,6 +197,15 @@ ProxyPreset {
 		^res
 	}
 
+	// speedup variants
+	getCurr {
+		^namesToStore.collect { |name| proxy.get(name) }
+	}
+
+	getCurrUni {
+		^namesToStore.collect { |name| proxy.getUni(name) }
+	}
+
 	stepCurr { |incr=1|
 		var currIndex = settings.indexOf(currSet) ? 0;
 		this.setCurr(settings.wrapAt(currIndex + incr).key);

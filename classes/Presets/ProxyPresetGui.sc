@@ -79,9 +79,11 @@ ProxyPresetGui : JITGui {
 		.font_(font)
 		.action_({ |but, modif|
 			// cocoa and swingosc -alt mod.
-			var rand = if ([524576, 24].includes(modif)) {
-				object.setRand(1.0) } { object.setRand  };
-
+			var rand = if (modif.isAlt) {
+				object.setRand(exprand(0.25, 1.0))
+			} {
+				object.setRand(exprand(0.01, 0.25));
+			};
 		});
 
 		Button(zone, Rect(0,0, 40, butHeight))
