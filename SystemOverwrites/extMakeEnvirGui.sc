@@ -274,7 +274,7 @@
 	paintWetParams { |editKeys|
 		editKeys.do { |key, i|
 			if (replaceKeys[key].notNil) {
-				key.postln;
+			//	key.postln;
 				paramViews[i].background_(Color.green);
 			} {
 				paramViews[i].background_(skin.background);
