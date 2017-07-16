@@ -87,19 +87,18 @@ LocalClient : Client {
 	minit { arg argAddr;
 		super.minit(argAddr);
 		resp = addr.collect { arg netaddr;
-				OSCresponderNode(netaddr, cmdName, { arg time, responder, msg, addr;
+				OSCFunc({ arg time, responder, msg, addr;
 				var key, func;
 				replyAddr = addr;
 				key = msg[1];
 				func = ClientFunc.at(key);
 				if(verbose) { "LocalClient % received: %\n".postf(name, msg) };
 				func.value(msg.drop(2), time, responder);
-			});
+			}, cmdName, netaddr)
 		};
-
 	}
-	
-	reply { | ...args| 
+
+	reply { | ...args|
 		args = this.prepareSendBundle([args]);
 		if (verbose) { ("LocalClient % replys: %\n").postf(name, args) };
 		replyAddr.do({ arg a; a.sendBundle(nil, *args) })
@@ -116,7 +115,7 @@ LocalClient : Client {
 		resp.do { arg u; u.remove };
 		isListening = false;
 	}
-	
+
 	*stop {
 		named.do { arg u; u.stop }
 	}
