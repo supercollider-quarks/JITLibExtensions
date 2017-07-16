@@ -188,15 +188,15 @@ ProxyMeter {
 	makeResp {
 
 		resp.remove;
-
-		resp = OSCpathResponder(ampProxy.server.addr, ['/c_setn',ampProxy.bus.index], { arg time, r, msg;
+		resp =  OSCFunc({ |time, r, msg|
 			var vols = msg.copyToEnd(3);
 			var preVol = vols[0];
 			var postVol = if (arProxy.monitor.isPlaying, arProxy.vol, 0) * preVol;
 			defer {
 				views.do { |ppv| ppv.setAmps(preVol, postVol) };
 			}
-		} ).add;
+		}, '/tr', ampProxy.server.addr, argTemplate: ['/c_setn', ampProxy.bus.index])
+
 	}
 
 	*showKrs { showingKrs = true; 	all.do(_.showKr); }
