@@ -87,13 +87,13 @@ LocalClient : Client {
 	minit { arg argAddr;
 		super.minit(argAddr);
 		resp = addr.collect { arg netaddr;
-				OSCFunc({ arg time, responder, msg, addr;
+				OSCFunc({ arg msg, time, addr;
 				var key, func;
 				replyAddr = addr;
 				key = msg[1];
 				func = ClientFunc.at(key);
 				if(verbose) { "LocalClient % received: %\n".postf(name, msg) };
-				func.value(msg.drop(2), time, responder);
+				func.value(msg.drop(2), time, resp);
 			}, cmdName, netaddr)
 		};
 	}
