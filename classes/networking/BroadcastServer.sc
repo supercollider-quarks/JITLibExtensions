@@ -158,18 +158,20 @@ BroadcastServer {
 		if (cmdName[0] != $/) { cmdName = cmdName.insert(0, $/) };
 		addresses.do { arg addr;
 			var resp;
-			resp = OSCresponderNode(addr, "/done", { |time, resp, msg|
-			[\synced, args].postln;
+			resp = OSCFunc({ |msg, time|
+				// [\synced, args].postln;
 
-			if (msg[1].asString == cmdName) {
-				resp.remove;
-				count = count - 1;
-				if(count == 0) {
-					condition.test = true;
-					condition.signal;
+				if (msg[1].asString == cmdName) {
+					count = count - 1;
+					if(count == 0) {
+						condition.test = true;
+						condition.signal;
+					};
+					// "sendMsgSync: freeing.".postln;
+					resp.free;
+					// "sendMsgSync: OSCFunc freed.".postln;
 				};
-			};
-			}).add;
+			}, "/done", addr);
 
 			addr.sendBundle(nil, args);
 		};
@@ -184,17 +186,20 @@ BroadcastServer {
 		addresses.do { arg addr;
 			var resp, id;
 			id = UniqueID.next;
-			resp = OSCresponderNode(addr, "/synced", { |time, resp, msg|
-			addr.dump;
-			if (msg[1] == id) {
-				resp.remove;
-				count = count - 1;
-				if(count == 0) {
-					condition.test = true;
-					condition.signal;
+			resp = OSCFunc({ |msg, time|
+				// addr.dump;
+				if (msg[1] == id) {
+					count = count - 1;
+					if(count == 0) {
+						condition.test = true;
+						condition.signal;
+					};
+					// "sync: freeing.".postln;
+					resp.free;
+					// "sync: OSCFunc freed.".postln;
+
 				};
-			};
-			}).add;
+			}, "/synced", addr);
 			if(bundles.isNil) {
 				addr.sendBundle(latency, ["/sync", id]);
 			} {
