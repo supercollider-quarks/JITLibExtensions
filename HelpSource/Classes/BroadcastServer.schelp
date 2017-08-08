@@ -1,0 +1,121 @@
+TITLE:: BroadcastServer
+summary:: dispatches osc messages to multiple servers
+categories:: Server>Abstractions
+related:: Classes/Server, Classes/ServerOptions, Reference/Server-Architecture, Reference/Server-Command-Reference
+
+DESCRIPTION::
+dispatches osc messages to multiple servers.
+Where broadcasting does not make sense, it forwards the message call to the local server defined in code::BroadcastServer.new::.
+
+note::
+code::BroadCastServer:: implements the link::Classes/Server:: interface and thus behaves like one wihtout explicitely being its subclass (duck-typing). All methods specific for code::BroadCastServer:: are documented in here, whereas the rest can be looked up in the link::Classes/Server:: helpfile.
+::
+
+
+CLASSMETHODS::
+METHOD:: new
+
+create a new instance. Initialising options are used only for the local server's properties.
+The other servers are represented by addresses added by link::#addAddr::.
+
+note::
+In multiclient situations, code::clientID:: needs to be different for each participant.
+::
+
+argument:: name
+local server name
+argument:: addr
+local server code::NetAddr::
+argument:: options
+local server code::ServerOptions::
+argument:: clientID
+local server code::clientID::
+
+METHOD:: for
+like code::*new::, but pass in already existing servers directly.
+argument:: homeServer
+the local server
+argument:: addresses
+code::NetAddr::es of remote servers.
+
+
+
+INSTANCEMETHODS::
+
+METHOD:: addresses
+Addresses the server is supposed to broadcast to. This usually includes the home address.
+
+METHOD:: homeServer
+the home server which is the server used for ID allocation and where normal functions of an individual server (like code::boot:: etc.) are relocated to.
+
+
+METHOD:: at
+argument:: index
+
+returns:: nth code::NetAddr::.
+
+
+METHOD:: wrapAt
+argument:: index
+returns:: nth code::NetAddr::, if index too large, starts from beginning.
+
+
+METHOD:: do
+argument:: function
+iterate over all addresses
+
+
+
+
+METHOD:: addAddr
+add a server's address
+argument:: ip
+argument:: port
+
+
+METHOD:: removeByIP
+remove a server's address
+argument:: ip
+an IP address, e.g. code::"192.168.23.10"::
+
+
+METHOD:: boot
+boots the local server
+
+PRIVATE:: addrIndex, audioBusAllocator, bufferAllocator, asTarget, closeBundle, controlBusAllocator, doesNotUnderstand, listSendBundle, listSendMsg, makeBundle, makeWindow, nextNodeID, nodeAllocator, notify, openBundle, options, removeByIP, sendBundle, sendMsg, sendMsgSync, sendRaw, serverBooting, serverRunning, staticNodeAllocator, status, sync
+
+
+EXAMPLES::
+
+code::
+(
+x = NetAddr("127.0.0.1", 57201);
+y = NetAddr("127.0.0.1", 57202);
+a = BroadcastServer(\broad1, x, nil, 0).addresses_( [x, y]);
+b = BroadcastServer(\broad2, y, nil, 1).addresses_( [x, y]);
+
+a.boot;
+b.boot;
+a.makeWindow;
+b.makeWindow;
+)
+
+a.sendMsg("/s_new", "default", 1980); // create 2 synths, one on each server
+b.sendMsg("/n_set", 1980, "freq", 300); // set both their freq control
+a.homeServer.sendMsg("/n_set", 1980, "freq", 550); // set only the home server's synth control
+// set them to different freqs, from a
+(
+a.do { arg addr;
+	addr.sendMsg("/n_set", 1980, "freq", 450 + 100.rand2);
+}
+)
+
+// set them to different freqs, from b
+(
+b.do { arg addr;
+	addr.sendMsg("/n_set", 1980, "freq", 450 + 100.rand2);
+}
+)
+
+b.sendMsg("/n_set", 1980, "gate", 0.0); // release all, from b
+::
