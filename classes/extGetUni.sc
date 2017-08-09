@@ -4,15 +4,15 @@
 
 	setUni { |...args| this.set(*this.mapPairs(args)); }
 	getUni { |... keys|
-		keys.collect { |key|
-			this.unmapPairs(key, this.get(key));
+		^keys.collect { |key|
+			this.unmapPairs([key, this.get(key)])[1]
 		}
 	}
 
 	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
 	getBi { |... keys|
-		keys.collect { |key|
-			this.unmapPairs(key, this.get(key), bipolar: true);
+		^keys.collect { |key|
+			this.unmapPairs([key, this.get(key)], bipolar: true);
 		}
 	}
 
@@ -36,7 +36,7 @@
 		pairs.pairsDo { |param, val, i|
 			var spec = this.getSpec(param);
 			if (spec.notNil) {
-				temp = spec.map(val);
+				temp = spec.unmap(val);
 				if(bipolar) { temp = temp.unibi };
 				unmappedPairs = unmappedPairs ++ [param, temp];
 
