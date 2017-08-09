@@ -130,7 +130,9 @@ BroadcastServer {
 		this.sendMsg("/notify", flag.binaryValue);
 	}
 
-	asTarget { ^homeServer.asTarget }
+	asTarget {
+		^homeServer.asTarget.server_(this)
+	}
 
 	// use home server allocators
 
