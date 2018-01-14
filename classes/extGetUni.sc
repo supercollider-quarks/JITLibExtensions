@@ -2,18 +2,35 @@
 // and support getSpec (via Halo)
 + Object {
 
-	setUni { |...args| this.set(*this.mapPairs(args)); }
-	getUni { |... keys|
-		keys.collect { |key|
-			this.unmapPairs(key, this.get(key));
-		}
+	setUni { |...args| this.set(*this.mapPairs(args)) }
+	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)) }
+
+	// single, to match proxy.get
+	getUni { |name|
+		var spec = this.getSpec(name);
+		var val = this.get(name);
+		if (val.isNil) {
+			("%.%: no value for key %.\n").postf(this, thisMethod.name, name.cs);
+			^nil
+		};
+		if (spec.isNil) {
+			("%.%: no spec for key %.\n").postf(this, thisMethod.name, name.cs);
+			^nil
+		};
+		^spec.unmap(val);
 	}
 
-	setBi { |...args| this.set(*this.mapPairs(args, bipolar: true)); }
-	getBi { |... keys|
-		keys.collect { |key|
-			this.unmapPairs(key, this.get(key), bipolar: true);
-		}
+	// single, to match proxy.get
+	getBi { |name|
+		var unmappedVal = this.getUni(name);
+		^if (unmappedVal.isNil) { nil } { unmappedVal.unibi };
+	}
+
+	getUnis { |...names|
+		^names.collect ( this.getUni(_) )
+	}
+	getBis { |...names|
+		^names.collect  ( this.getBi(_) )
 	}
 
 	mapPairs { |pairs, bipolar = false|
@@ -30,27 +47,10 @@
 		};
 		^mappedPairs;
 	}
-
-	unmapPairs { |pairs, bipolar = false|
-		var unmappedPairs = [], temp;
-		pairs.pairsDo { |param, val, i|
-			var spec = this.getSpec(param);
-			if (spec.notNil) {
-				temp = spec.map(val);
-				if(bipolar) { temp = temp.unibi };
-				unmappedPairs = unmappedPairs ++ [param, temp];
-
-			} {
-				("%.%: no spec for %.\n").postf(
-					this, thisMethod.name, param.cs);
-			};
-		};
-		^unmappedPairs;
-	}
 }
 
 + NPVoicer {
 	setUniAt { | index ... args |
 		proxy.setAt(index, *proxy.mapPairs(args));
- 	}
+	}
 }
