@@ -196,6 +196,7 @@ ProxyMeter {
 				views.do { |ppv| ppv.setAmps(preVol, postVol) };
 			}
 		}, '/c_setn', ampProxy.server.addr, nil, [ampProxy.bus.index])
+		.permanent_(true);
 
 	}
 
