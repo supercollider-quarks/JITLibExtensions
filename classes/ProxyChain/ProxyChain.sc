@@ -35,17 +35,105 @@ c.insertBefore(\dust, \klong, \filter -> { |in, freq=400, att=0.01, decay=0.3, s
 ProxyChain {
 
 	classvar <allSources;
+	classvar <sourceDicts;
 	classvar <all;
 
 	var <slotNames, <slotsInUse, <proxy, <sources;
 
 	*initClass {
 		allSources = ();
+		sourceDicts = ();
 		all = ();
+
+		Class.initClassTree(Halo);
+		this.addSpec;
 	}
 
+	// old style - not recommended: add list of sources
 	*add { |...args|
-		args.pairsDo { |k, v| allSources.put(k, v) }
+		args.pairsDo { |srcName, source|
+			this.addSource(srcName, source);
+		}
+	}
+
+	// new style - recommended: add source, level, specs together
+	*add3 { |srcName, source, level, specs|
+		var dict = this.atSrcDict(srcName);
+		this.addSource(srcName, source);
+		this.addLevel(srcName, level);
+		this.addSpecs(srcName, specs);
+		this.checkSourceDictAt(srcName);
+	}
+
+	*addSource { |srcName, source|
+		var dict = this.atSrcDict(srcName);
+		var srcFunc, paramNames;
+
+		if (source.notNil) {
+			// backwards compat - remove!
+			allSources.put(srcName, source);
+
+			dict.put(\source, source);
+			srcFunc = if (source.isKindOf(Association)) { source.value } { source };
+			paramNames = srcFunc.argNames.as(Array);
+			paramNames.remove(\in);
+			dict.put(\paramNames, paramNames);
+		}
+	}
+
+	*addLevel { |srcName, level|
+		var dict = this.atSrcDict(srcName);
+		if (level.notNil) { dict.put(\level, level) }
+	}
+
+	*addSpecs { |srcName, specs, srcDict|
+		var dict = this.atSrcDict(srcName);
+		var specDict;
+
+		if (specs.notNil) {
+			specDict = dict[\specs] ?? { () };
+			dict.put(\specs, specDict);
+
+			specs.keysValuesDo { |parkey, spec|
+				var newspec;
+				if (spec.isKindOf(Array)) { newspec = spec.asSpec };
+				newspec = newspec ?? { this.getSpec(spec) ?? { spec.asSpec } };
+				if (newspec.isNil) {
+					"%: spec conversion at % - % failed!\n".postf(this, srcName.cs,  parkey.cs)
+				} {
+					specDict.put(parkey, spec.asSpec);
+				}
+			}
+		}
+	}
+
+	*checkDicts {
+		sourceDicts.keysDo { |key| this.checkSourceDictAt(key) }
+	}
+
+	*checkSourceDictAt { |srcname|
+		var dict = sourceDicts[srcname];
+		var src = dict[\source];
+		var paramNames = dict[\paramNames];
+
+		paramNames.do { |name|
+			var spec;
+			if (dict[\specs].notNil) { spec = dict[\specs][name] };
+			spec = spec ?? { ProxyChain.getSpec(name) };
+			spec = spec ?? { name.asSpec };
+			if (spec.isNil) {
+				"*** ProxyChain: % needs a spec for %!\n".postf(srcname, name);
+			}
+		}
+	}
+
+	*atSrcDict { |key|
+		var sourceDict = sourceDicts[key];
+		if (sourceDict.isNil) {
+			sourceDict = ().parent = this.getSpec;
+			sourceDicts.put(key, sourceDict);
+		};
+		^sourceDict
 	}
 
 	*from { arg proxy, slotNames = #[];
@@ -88,6 +176,9 @@ ProxyChain {
 		if (proxy.key.notNil) { all.put(proxy.key, this) };
 
 		this.slotNames_(argSlotNames);
+
+		proxy.addSpec;
+		proxy.getSpec.parent = this.class.getSpec;
 	}
 
 	slotNames_ { |argSlotNames|
@@ -111,6 +202,8 @@ ProxyChain {
 	addSlot { |key, index, wet|
 
 		var func = sources[key];
+		var srcDict = sourceDicts[key];
+
 		var prefix, prevVal, specialKey;
 		if (func.isNil) { "ProxyChain: no func called \%.\n".postf(key, index); ^this };
 		if (index.isNil) { "ProxyChain: index was nil.".postln; ^this };
@@ -125,6 +218,10 @@ ProxyChain {
 			if (wet.isNil) { wet = prevVal ? 0 };
 			proxy.addSpec(specialKey, \amp.asSpec);
 			proxy.set(specialKey, wet);
+		};
+
+		if (srcDict.notNil and: { srcDict.specs.notNil }) {
+			srcDict.specs.keysValuesDo { |param, spec| proxy.addSpec(param, spec) };
 		};
 		proxy[index] = func;
 	}
@@ -167,4 +264,43 @@ ProxyChain {
 		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList, isMaster);
 	}
 
+
+	// introspection & preset support:
+	activeSlotNames { ^slotsInUse.array }
+
+	slotIndexFor { |slotName| ^this.activeSlotNames.indexOf(slotName) }
+
+	orderIndexFor { |slotName|
+		var rawIndex = this.activeSlotNames.indexOf(slotName);
+		if (rawIndex.isNil) {
+			"%: no active slot named %!\n".postf(this, slotName.cs);
+			^nil
+		};
+		^slotsInUse.indices[rawIndex];
+	}
+
+	keysAt { |slotName|
+		var orderIndex = this.orderIndexFor(slotName);
+		var obj, names;
+		if (orderIndex.isNil) { ^nil };
+
+		obj = proxy.objects[orderIndex];
+		names = obj.controlNames.collect(_.name);
+		names.removeAll(proxy.internalKeys);
+		^names
+	}
+
+	keysValuesAt { |slotName|
+		var keys = this.keysAt(slotName);
+		if (keys.isNil) { ^nil };
+		^proxy.getKeysValues(keys);
+	}
+
+	getCurr { |except|
+		var slotsToGet = this.activeSlotNames.copy;
+		slotsToGet.removeAll(except);
+		^slotsToGet.collect { |slotName|
+			slotName -> this.keysValuesAt(slotName);
+		}
+	}
 }
