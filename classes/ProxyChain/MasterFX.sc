@@ -54,15 +54,21 @@ MasterFX {
 	remove { |key|
 		pxChain.remove(key);
 	}
-	
-	bus { 
+
+	proxy { ^pxChain.proxy }
+
+	set { |...args|
+		pxChain.set(*args)
+	}
+
+	makeBus {
 		^Bus.new(\audio, busIndex, numChannels, server);
 	}
 
 
 	cmdPeriod {
 		group.freeAll; 	// for SharedServers
-						// evil just to wait? hmmm. 
+						// evil just to wait? hmmm.
 		defer({ this.wakeUp }, 0.2);
 	}
 
@@ -80,9 +86,9 @@ MasterFX {
 		numChannels = inNumChannels ? server.options.numOutputBusChannels;
 		busIndex = inBusIndex ? 0;
 
-		proxy = Ndef(\zz_mastafx -> server.name); 
-		proxy.ar(numChannels); 
-		proxy.bus_(this.bus);
+		proxy = Ndef(\zz_mastafx -> server.name);
+		proxy.ar(numChannels);
+		proxy.bus_(this.makeBus);
 		pxChain = ProxyChain.from(proxy, inSlotNames ? []);
 
 		this.hide;	// hide by default
@@ -155,4 +161,6 @@ MasterFX {
 	}
 
 	*default { ^all[Server.default.name] }
+
 }
+
