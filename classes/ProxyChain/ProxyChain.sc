@@ -52,21 +52,30 @@ ProxyChain {
 		^super.new.init(proxy, slotNames)
 	}
 
-	key { ^all.findKeyForValue(this) }
-
 	*new { arg key, slotNames, numChannels, server;
 		var proxy;
 		var res = all.at(key);
-		if(res.isNil) {
-			proxy = NodeProxy.audio(server ? Server.default, numChannels);
-			res = this.from(proxy, slotNames);
-			if (key.notNil) { all.put(key, res) };
+
+		if(res.notNil) {
+			if ([slotNames, numChannels, server].any(_.notNil)) {
+				"*** %: cannot reset slotNames, numChannels, or server on an existing ProxyChain."
+				" Returning % as is.\n".postf(this, res)
+			};
+			^res
 		};
 
-		if(slotNames.notNil) { res.slotNames_(slotNames) }
+		proxy = NodeProxy.audio(server ? Server.default, numChannels);
+		res = this.from(proxy, slotNames);
+		if (key.notNil) { all.put(key, res) };
+
+		if(slotNames.notNil) { res.slotNames_(slotNames) };
 
 		^res
 	}
+
+	key { ^all.findKeyForValue(this) }
+	storeArgs { ^[this.key] }
+	printOn { |stream| ^this.storeOn(stream) }
 
 	init { |argProxy, argSlotNames|
 
@@ -114,6 +123,7 @@ ProxyChain {
 			specialKey = (prefix ++ index).asSymbol;
 			prevVal = proxy.nodeMap.get(specialKey).value;
 			if (wet.isNil) { wet = prevVal ? 0 };
+			proxy.addSpec(specialKey, \amp.asSpec);
 			proxy.set(specialKey, wet);
 		};
 		proxy[index] = func;
@@ -150,22 +160,11 @@ ProxyChain {
 		proxy.end(fadeTime, reset);
 	}
 
+	set { |... args| proxy.set(*args) }
 
 		// JIT gui support
 	gui { |numItems = 16, buttonList, parent, bounds, isMaster = false|
 		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList, isMaster);
 	}
 
-	// // this is probably not needed anymore
-	// // old NodeProxyEditor
-	// informEditor { |ed|
-	// 	slotNames.do { |name, i| ed.replaceKeys.put(("wet" ++ i).asSymbol, name) };
-	// 	slotNames.do { |name, i| ed.replaceKeys.put(("mix" ++ i).asSymbol, name) };
-	// }
-	//
-	// makeEdit { |name, nSliders=24, parent, bounds|
-	// 	var ed = NdefGui(proxy, nSliders, parent, bounds);
-	// 	//	this.informEditor(ed);
-	// 	^ed
-	// }
 }
