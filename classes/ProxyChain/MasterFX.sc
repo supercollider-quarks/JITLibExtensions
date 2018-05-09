@@ -7,19 +7,35 @@ MasterFX {
 	*initClass {
 		all = IdentityDictionary.new;
 	}
-	
-	*new { |server, numChannels, slotNames, busIndex=0| 
+
+	*new { |server, numChannels, slotNames, busIndex|
 		// only one masterfx per server ATM.
 		// could be changed if different MasterFX
 		// for different outchannel groups are to be used.
-		
-		var fx = all[server.name];
-		if (fx.notNil) { 
-			"// MasterFX for server % exists - use \nMasterFX.clear(%) \n// to make a new one.\n"
+		var serverName, fx;
+		server = server ?? { Server.default };
+		case { server.isKindOf(Server) } {
+			serverName = server.name
+		} { server.isKindOf(Symbol) } {
+			serverName = server;
+			server = Server.named[serverName];
+			if (server.isNil) {
+				"*** MasterFX: could not find server for % !\n".postf(serverName.cs);
+				^nil
+			}
+		};
+
+		fx = all[serverName];
+
+		if (fx.notNil) {
+			if ( [numChannels, slotNames, busIndex].any(_.notNil) ) {
+				"// MasterFX for server % exists, cannot change its settings while running - use\n"
+				"MasterFX.clear(%) \n// to make a new one.\n"
 				.postf(server.name, server.name.asCompileString);
+			};
 			^fx
-		} { 
-			^this.make(server, numChannels, slotNames, busIndex) 
+		} {
+			^this.make(server, numChannels, slotNames, busIndex ? 0)
 		}
 	}
 
