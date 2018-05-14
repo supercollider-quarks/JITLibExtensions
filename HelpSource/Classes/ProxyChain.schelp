@@ -11,8 +11,10 @@ Like Ndef, Pdef, Tdef, ProxyChain keeps all named instances in a class variable 
 
 subsection:: First Examples
 
+Basic usage first:
+
 code::
-	// add a sound source
+// add a sound source
 ProxyChain.add(
 	\dust, \mix -> { |dens=20, dustdec=0.02, dustfreq= 600|
 		Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq, dustdec)
@@ -20,9 +22,9 @@ ProxyChain.add(
 );
 
 // add some effects, using NodeProxy roles:
-	// an association with \filter becomes a filter,
-	// and creates a wet/dry balance on the output.
-	// several funcs can be added as key1, func1, key2, type -> func2, etc.
+// an association with \filter becomes a filter,
+// and creates a wet/dry balance on the output.
+// several funcs can be added as key1, func1, key2, type -> func2, etc.
 ProxyChain.add(
 	\dist, \filter -> { |in, drive=10, amp=0.2| (in * drive).tanh * amp },
 	\ringmod, \filter -> { |in, randrate=5|
@@ -45,11 +47,8 @@ ProxyChain(\test, [\dust, \dist,\ringmod,\comb, \ampFin]);
 // access by name
 ProxyChain(\test);
 
-// warns that it cannot reset ProxyChain from new method
+// warns that it cannot reset ProxyChain from 'new' method
 ProxyChain(\test, [\dust, \dist,\ringmod, \ampFin]);
-
-// make a gui for it to see its state:
-ProxyChain(\test).gui;
 
 // tell the proxy to play
 ProxyChain(\test).play;
@@ -57,7 +56,7 @@ ProxyChain(\test).play;
 // kick in a source  with a mix level
 ProxyChain(\test).add(\dust, 0.2)
 
-// and effects with a wet/dry level
+// and an effect with a wet/dry level
 ProxyChain(\test).add(\ringmod, 0.7)
 
 ProxyChain(\test).add(\comb, 0.2)
@@ -65,7 +64,7 @@ ProxyChain(\test).add(\comb, 0.2)
 // set effects parameters
 ProxyChain(\test).set(\decay, 10);
 
-// set proxy fadetime,
+// set proxy fadetime
 ProxyChain(\test).proxy.fadeTime = 3;
 
 // remove fx and source by fadeout
@@ -75,7 +74,65 @@ ProxyChain(\test).remove(\comb)
 
 ProxyChain(\test).remove(\dust)
 
+// make a gui to see its state:
+ProxyChain(\test).gui;
 ::
+Note:: When using ProxyChains with GUIs and controllers, things become much easier when specs for the process parameters are defined along with the processes. One can do this by adding global specs (code:: Spec.add(\dens, [1, 100, \exp])::s), or by adding specs to the ProxyChain's proxy.
+ProxyChain also supports defining these specs when setting up the repertoire of functions.
+::
+
+code::
+(	// add a sound source and its specs together:
+ProxyChain.add3(
+	\dust, \mix -> { |dens=20, dustdec=0.02, dustfreq= 600|
+		Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq, dustdec)
+	},
+	0.2, // default playing level,
+	// spec can be an array of key, value, key, value, or a dictionary
+	[
+		\dens, [1, 1000, \exp],
+		\dustdec, [0.00001, 0.1, \exp],
+		\dustfreq, [30, 15000, \exp]
+	]
+);
+
+ProxyChain.add3(
+	\dist, \filter -> { |in, drive=10, amp=0.2| (in * drive).tanh * amp },
+	1.0,
+	( drive: [1, 10, \amp] )
+);
+
+ProxyChain.add3(
+	\ringmod, \filter -> { |in, randrate=5|
+		// in a filter, 'in' is the signal on the bus
+		in.asArray[0] 	// force mono inputs
+		* SinOsc.ar(LFNoise0.kr([randrate, randrate]).exprange(300, 3000)).sum
+	},
+	0.5,
+	[randrate: [0.2, 200, \exp]]
+);
+
+ProxyChain.add3(
+	\comb, \filterIn -> { |in, decay = 3| CombL.ar(in * 0.3, 0.02, [0.03, 0.042], decay) },
+	0.2,
+	(decay: [0.2, 200, \exp])
+);
+
+ProxyChain.add3(
+	\ampFin, \filter -> { |in, drive=1, ampLimit=1|
+		Limiter.ar(in * drive, ampLimit);
+	},
+	1,
+	( drive: [1, 10, \amp], ampLimit: [0.5, 1] )
+);
+)
+
+// ... and now the gui uses these specs:
+ProxyChain(\test, [\dust, \dist,\ringmod,\comb, \ampFin]);
+g = ProxyChain(\test).gui;
+::
+
+Note:: TODO: Gui should use levels as stored with add3... ::
 
 CLASSMETHODS::
 
@@ -87,6 +144,28 @@ a dict of all ProxyChain instances.
 
 METHOD:: add
 put synth functions into code::ProxyChain.all::, by name, func, name, func ...
+
+METHOD:: add3
+add a named synth func with level and specs
+
+METHOD:: addSource
+add a source func at srcName
+METHOD:: addLevel
+add a default level for the func at srcName
+METHOD:: addSpecs
+add specs for the func at srcName
+
+METHOD:: sourceDicts
+access the dict which contains all sourceDicts
+
+METHOD:: atSrcDict
+get the srcDict at given srcName
+
+METHOD:: checkDicts
+check all sourceDicts for integrity
+
+METHOD:: checkSourceDictAt
+check the sourceDict at srcName
 
 
 METHOD:: new
@@ -126,10 +205,18 @@ ProxyChain.from(Ndef(\bla), [\dust, \ringmod, \dist, \comb, \ampFin]);
 ProxyChain(\bla).play;
 ProxyChain(\bla).add(\dust);
 
+
 ProxyChain.all;
 ::
 
 INSTANCEMETHODS::
+
+METHOD:: key
+the key under which the proxyChain is stored in code::ProxyChain.all ::
+
+METHOD:: sources
+an optional dict of local source funcs - these will override source funcs with the same name in code::ProxyChain.all::
+
 
 METHOD:: proxy
 the proxy inside the chain
@@ -140,8 +227,10 @@ METHOD:: play
 METHOD:: playN
 METHOD:: stop
 METHOD:: end
+
 METHOD:: set
 
+subsection::de/activating slots
 
 METHOD:: add
 kick in a source by name, with a mix level
@@ -170,20 +259,28 @@ c.remove(\ringmod);
 c.remove(\riseComb5);
 ::
 
+METHOD:: setSlots
+set (add or remove) multiple slots at once.
+
+subsection:: configuration & introspection
 
 METHOD:: slotNames
 get slotNames, change to new slotNames.
-This only works predictably when all slots are turned off!
+Note:: Changing slotNames only works predictably when all slots are turned off!::
 
 METHOD:: slotsInUse
 the names of the currently playing slots.
 
-METHOD:: setSlots
-set multiple slots at once.
+METHOD:: activeSlotNames
+get the currently active slot names
+METHOD:: getCurr
+get the current settings (for the optional slotNames given)
 
+METHOD:: keysAt
+get all keys at slotName
 
-METHOD:: sources
-an optional dict of local source funcs - these will override source funcs with the same name in code::ProxyChain.all::
+METHOD:: keysValuesAt
+get all keys and values at slotName
 
 
 METHOD:: gui
@@ -224,73 +321,47 @@ private:: addSlot, orderIndexFor, slotIndexFor
 
 EXAMPLES::
 
-TODO - adapt with next commit ...
+Replacing a slot and reordering slots:
 
 code::
+
+// take proxychain from above:
+ProxyChain(\test);
+// which has these slotnames
+ProxyChain(\test).slotNames
+
+->  Order[ dust, dist, ringmod, comb, ampFin ]
+
+// while no slots are active, switch to new slotNames:
+ProxyChain(\test).slotNames = [ \dust, \ringmod, \dist, \comb5, \ampFin ];
+
+// make a gui for it - it has the new order
+g = ProxyChain(\test).gui;
+
 (
-// add a sound source
-ProxyChain.add(
-	\dust, \mix -> { |dens=20, dustdec=0.02, dustfreq= 600|
-		Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq, dustdec)
-	}
-);
+// Add \comb5 now, after using its name in ProxyChain
+// -- this is a formlet-like reverb that fades in slowly
 
-// an association with \filter becomes a filter,
-// and creates a wet/dry balance on the output.
-// several funcs can be added as key1, func1, key2, type -> func2, etc.
-ProxyChain.add(
-	\ringmod, \filter -> { |in, randrate=5|
-		in.asArray[0] 	// force mono inputs
-		* SinOsc.ar(LFNoise0.kr([randrate, randrate]).exprange(300, 3000)).sum
-	},
-	\dist, \filter -> { |in, drive=10, amp=0.2| (in.asArray[0] * drive).clip2(0.5) * amp }
-);
+ProxyChain.add3(
+	\comb5, \filterIn -> { arg in, delayScale = 1, decay = 5, dlDrift = 0.1;
+		var combs;
+		delayScale = delayScale.lag2(1);
+		dlDrift = dlDrift.lag2(1);
 
-// an association with \filterIn also becomes a filter,
-// but creates the wet/dry balance control on the filter input,
-// on on the output like \filter. this can be useful for delays, reverbs etc.
-ProxyChain.add(
-	\riseComb5, \filterIn -> { arg in, delay = 0.023, dlDrift = 0.02, spread=0.5,
-		decayRise=0.5, decayFall=100;
-
-		var delayscales = 2 ** ((0 .. q.numChans - 1) * 2 / (q.numChans - 1) - 1 * spread);
-
-		var dels = delayscales.scramble.collect { |dscale|
-
-			var timedrift = LFDNoise3.kr(0.3, dlDrift, 1) * dscale;
-			var ampcomp = (20 * decayRise).dbamp * (decayFall ** -0.25);
-
-			var combs;
-			in = in.asArray[0] * ampcomp.lag(0.2);
-			combs = (decayFall * [ 1, decayRise]).collect { |decay|
-				CombL.ar(in, 1, delay * dscale, decay * delay)
-			};
-			combs[0] - combs[1];	// combs come in slowly, like formlet.
-
+		combs = [0.05, 0.08, 0.13, 0.21, 0.34].collect { |dt|
+			var drift = LFDNoise3.kr(0.3, dlDrift, 1);
+			CombL.ar(in, 0.7, dt * drift * delayScale, decay)
 		};
-		Splay.ar(dels)
+		Splay.ar(combs)
 	},
-	\ampFin, \filter -> { |in, drive=1, ampLimit=1, lAmp=1|
-		Limiter.ar(in * drive, ampLimit) * lAmp;
-	}
+	0.2,
+	(
+		\delayScale: [0.1, 1, \exp],
+		\decay: [0.3, 300, \exp],
+		\dlDrift: [0, 0.8, \amp]
+	)
 );
-
-// add specs for the controls used (for NodeProxyEditor).
-Spec.add(\dens, [0.1, 1000, \exp]);
-Spec.add(\dustamp, [0, 1, \amp]);
-Spec.add(\dustdec, [0.0001, 0.1, \exp]);
-Spec.add(\dustfreq, \freq);
-
-Spec.add(\dt, [0.001, 0.2, \exp]);
-Spec.add(\dc, [0.01, 100, \exp]);
-
-Spec.add(\drive, [1, 100, \exp]);
-
-Spec.add(\spread, [0, 1, \amp]);
-Spec.add(\decayRise, [0, 0.9, \amp]);
-Spec.add(\decayFall, [1, 1000, \exp]);
-Spec.add(\dlDrift, [0, 0.1, \amp]);
-
-s.boot;
 )
+
+// now try kicking it in
 ::
