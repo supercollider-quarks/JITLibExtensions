@@ -1,17 +1,21 @@
 MasterFX {
 
 	classvar <all, <maxNumChans = 8;
-	var <group, <numChannels, <busIndex, <server, <pxChain;
+	var <group, <numChannels, <busIndex, <server, <proxyChain;
 	var <checkingBadValues = true, <badSynth, badDefName;
 
 	*initClass {
 		all = IdentityDictionary.new;
 	}
 
-	*new { |server, numChannels, slotNames, busIndex|
+	*default { ^all[Server.default.name] }
+
+
 		// only one masterfx per server ATM.
-		// could be changed if different MasterFX
-		// for different outchannel groups are to be used.
+		// This could be changed if different MasterFX
+		// for different groups of output channels are to be used.
+
+	*new { |server, numChannels, slotNames, busIndex|
 		var serverName, fx;
 		server = server ?? { Server.default };
 		case { server.isKindOf(Server) } {
@@ -39,31 +43,38 @@ MasterFX {
 		}
 	}
 
-	key { ^all.findKeyForValue(this) }
-	storeArgs { ^[server.name] }
-	printOn { |stream| ^this.storeOn(stream) }
-
 	*make { |server, numChannels, slotNames|
 		^super.new.init(server, numChannels, slotNames);
-	}
-
-	// interface to pxChain
-	add { |key, wet, func|
-		pxChain.add(key, wet, func);
-	}
-	remove { |key|
-		pxChain.remove(key);
-	}
-
-	proxy { ^pxChain.proxy }
-
-	set { |...args|
-		pxChain.set(*args)
 	}
 
 	makeBus {
 		^Bus.new(\audio, busIndex, numChannels, server);
 	}
+
+	key { ^all.findKeyForValue(this) }
+	storeArgs { ^[server.name] }
+	printOn { |stream| ^this.storeOn(stream) }
+
+	// interface to proxyChain
+
+	add { |key, wet, func|
+		proxyChain.add(key, wet, func);
+	}
+	remove { |key|
+		proxyChain.remove(key);
+	}
+
+	set { |...args| proxyChain.set(*args) }
+
+	slotNames { ^proxyChain.slotNames }
+
+	slotNames_ { |argSlotNames| proxyChain.slotNames_(argSlotNames) }
+
+	proxy { ^proxyChain.proxy }
+
+	pxChain { ^proxyChain } // backwards compatibility
+
+	slotsInUse { ^proxyChain.slotsInUse }
 
 
 	cmdPeriod {
@@ -72,12 +83,13 @@ MasterFX {
 		defer({ this.wakeUp }, 0.2);
 	}
 
+	// hide Ndef by default
 	hide {
-		Ndef.all[server.name].envir.removeAt(pxChain.proxy.key);
+		Ndef.all[server.name].envir.removeAt(proxyChain.proxy.key);
 	}
-	// maybe it is useful to see it under some circumstances
+	// show it in case that is useful in some circumstances?
 	show {
-		Ndef.all[server.name].envir.put(pxChain.proxy.key, pxChain.proxy);
+		Ndef.all[server.name].envir.put(proxyChain.proxy.key, proxyChain.proxy);
 	}
 
 	init { |inServer, inNumChannels, inSlotNames, inBusIndex|
@@ -89,7 +101,7 @@ MasterFX {
 		proxy = Ndef(\zz_mastafx -> server.name);
 		proxy.ar(numChannels);
 		proxy.bus_(this.makeBus);
-		pxChain = ProxyChain.from(proxy, inSlotNames ? []);
+		proxyChain = ProxyChain.from(proxy, inSlotNames ? []);
 
 		this.hide;	// hide by default
 
@@ -115,21 +127,21 @@ MasterFX {
 	}
 
 	makeGroup {
-		group = Group.new(1.asGroup, \addAfter).isPlaying_(true);
-		pxChain.proxy.parentGroup_(group);
+		group = Group.new(server.defaultGroup, \addAfter).isPlaying_(true);
+		proxyChain.proxy.parentGroup_(group);
 	}
 
 	wakeUp {
 		"\nMasterFX for server % waking up.\n\n".postf(server.name);
 		this.makeGroup;
-		pxChain.proxy.wakeUp;
+		proxyChain.proxy.wakeUp;
 		this.checkBad;
 	}
 
 	clear {
 		CmdPeriod.remove(this);
-		pxChain.proxy.clear;
-		all.removeAt(pxChain.proxy.server.name);
+		proxyChain.proxy.clear;
+		all.removeAt(proxyChain.proxy.server.name);
 	}
 
 	*clear { |name|
@@ -140,15 +152,15 @@ MasterFX {
 
 	makeName {
 		^(this.class.name ++ "_" ++ server.name
-			++ "_" ++ pxChain.proxy.numChannels).asSymbol
+			++ "_" ++ proxyChain.proxy.numChannels).asSymbol
 	}
 
 	gui { |name, numItems, buttonList, parent, bounds, makeSkip = true|
 		// the effects are all on by default:
-		buttonList = buttonList ?? { pxChain.slotNames.collect ([_, \slotCtl, 1]) };
+		buttonList = buttonList ?? { proxyChain.slotNames.collect ([_, \slotCtl, 1]) };
 		name = name ?? { this.makeName };
 		numItems = numItems ? 16;
-		^MasterFXGui(pxChain, numItems, parent, bounds, makeSkip, buttonList)
+		^MasterFXGui(this, numItems, parent, bounds, makeSkip, buttonList)
 		.name_(name);
 	}
 
@@ -160,7 +172,4 @@ MasterFX {
 		};
 	}
 
-	*default { ^all[Server.default.name] }
-
 }
-
