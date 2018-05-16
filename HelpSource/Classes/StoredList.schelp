@@ -182,3 +182,19 @@ open a dialog for deleting settings
 
 METHOD:: storeDialog
 open a dialog for naming and storing a new setting
+
+Examples::
+code::
+
+// tests for store/delete
+z = StoredList(\myTestID);
+z.storeDialog('testName', [\asd -> \xyz]);
+z.storeDialog('testName', [\asd -> \xyz], 150@150);
+
+Button(nil, Rect(300, 300, 100, 100)).front.states_([["test"]])
+.action = { |bt| z.storeDialog('?', [\fgh -> \uvw], bt.bounds.center) };
+
+Button(nil, Rect(300, 300, 100, 100)).front.states_([["test"]])
+.action = { |bt| z.deleteDialog(bt.bounds.center) };
+
+::
