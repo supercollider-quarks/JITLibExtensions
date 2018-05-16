@@ -1,0 +1,224 @@
+TITLE:: ProxyChainPreset
+summary:: a preset class for ProxyChain
+categories:: JITLib
+related:: Classes/ProxyChain, Classes/MasterFX
+
+DESCRIPTION::
+
+First code examples:
+
+code::
+
+// first, prepare a proxy chain:
+s.boot;
+
+(
+// add a sound source
+ProxyChain.add3(
+	\dust,
+	\mix -> { |dens=20, dustdec=0.02, dustfreq= 600|
+		Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq, dustdec)
+	},
+	0,
+	[
+		\dens, [0.1, 1000, \exp],
+		\dustdec, [0.0001, 0.1, \exp],
+		\dustfreq, \freq
+	]
+);
+
+// ... and some effects to use in the chain
+ProxyChain.add3(
+	\ringmod,
+	\filter -> { |in, randrate=5|
+		in.asArray[0]	 // force mono inputs
+		* SinOsc.ar(LFNoise0.kr([randrate, randrate]).exprange(300, 3000)).sum
+	}, 0,
+	[ \randrate, [0.5, 50, \exp] ]
+);
+
+ProxyChain.add3(
+	\dist, \filter -> { |in, drive=10, amp=0.2| (in.asArray[0] * drive).clip2(0.5) * amp },
+	1,
+	[ \drive, [1, 100, \exp] ],
+);
+
+ProxyChain.add(
+	\ampFin,
+	\filter -> { |in, drive=1, limit=1| Limiter.ar(in * drive, limit) },
+	1,
+	[
+		\drive, [1, 100, \exp],
+		\limit, [0.1, 1.0, \exp]
+	]
+);
+
+// now make a proxy chain and gui for it
+c = ProxyChain(\alpha, [\dust, \ringmod, \dist, \ampFin]);
+c.play;	// play the proxy
+g = c.gui(12).moveTo(0, 800);
+)
+
+
+// 2. make a ProxyChainPreset for c
+b = ProxyChainPreset(c);
+// declare ampFin as always untouched / not stored
+b.exceptedSlots = [\ampFin];
+
+
+b.slotsToStore; // these slots and their values will be stored when active
+c.activeSlotNames; // these are currently active
+
+
+c.add(\dust, 0.5);
+c.add(\ringmod, 1);
+c.activeSlotNames; // these are currently active
+b.addSet(\test1);
+b.settings.list;
+
+// repeat unil you find one you like
+c.proxy.setUni( *c.proxy.controlKeys.collect ( [_, 1.0.rand] ).flat );
+b.addSet(\test2);
+b.settings.prettyList; // two entries
+
+// add a slot and add a setting
+c.add(\dist, 1);
+b.addSet(\test3);
+
+// remove another and addSet
+c.remove(\ringmod);
+b.addSet(\test4);
+
+c.remove(\dist);
+c.proxy.set(\dustfreq, 3000, \dens, 7, \dustdec, 0.01);
+b.addSet(\test5);
+
+// now you have 5 different settings - switch between them:
+b.settings.prettyList;
+b.settings.names
+b.setCurr(\test1);
+b.setCurr(\test2);
+b.setCurr(\test3);
+b.setCurr(\test4);
+b.setCurr(\test5);
+
+// now write them to disk
+b.settings.write;
+
+// try adding items from a stored list by hand
+(
+// copied from prettyList:
+~storedList = List[
+	('test1' -> [ ('dust' -> [ [ 'mix10', 0.5 ], [ 'dens', 20 ], [ 'dustdec', 0.02 ], [ 'dustfreq', 600 ] ]), ('ringmod' -> [ [ 'wet20', 1 ], [ 'randrate', 5 ] ]) ]),
+	('test2' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 22.142675857578 ], [ 'dustdec', 0.059306742652702 ], [ 'dustfreq', 3684.0549320609 ] ]), ('ringmod' -> [ [ 'wet20', 0.50756380919269 ], [ 'randrate', 0.78393124499583 ] ]) ]),
+	('test3' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 22.142675857578 ], [ 'dustdec', 0.059306742652702 ], [ 'dustfreq', 3684.0549320609 ] ]), ('ringmod' -> [ [ 'wet20', 0.50756380919269 ], [ 'randrate', 0.78393124499583 ] ]), ('dist' -> [ [ 'wet30', 1 ], [ 'drive', 10 ], [ 'amp', 0.2 ] ]) ]),
+	('test4' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 22.142675857578 ], [ 'dustdec', 0.059306742652702 ], [ 'dustfreq', 3684.0549320609 ] ]), ('dist' -> [ [ 'wet30', 1 ], [ 'drive', 10 ], [ 'amp', 0.2 ] ]) ]),
+	('test5' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 7 ], [ 'dustdec', 0.01 ], [ 'dustfreq', 3000 ] ]) ])
+];
+// -> now add that list to .list:
+b.settings.list.clear.addAll(~storedList);
+)
+// and test that the settings are here
+b.setCurr(\test1);
+b.setCurr(\test2);
+b.setCurr(\test3);
+b.setCurr(\test4);
+b.setCurr(\test5);
+
+b.settingNames;
+
+::
+
+CLASSMETHODS::
+
+METHOD:: all
+dict where all ProxyChainPreset objects are stored by name
+
+private:: initClass
+
+METHOD:: new
+make a ProxyChainPreset for a key or a ProxyChain
+argument:: keyOrObj
+
+INSTANCEMETHODS::
+
+private:: init, storeArgs, printOn
+
+METHOD:: chain
+the proxychain
+
+METHOD:: proxy
+the proxy of the proxychain
+
+METHOD:: key
+the key by which this ProxyChainPreset is stored.
+
+METHOD:: slotsToStore
+which slot names will be stored if active
+
+METHOD:: exceptedSlots
+get and set which slots are not to be stored
+
+METHOD:: settings
+the settings object that does storage
+
+METHOD:: addSet, removeSet
+add and remove a setting by name
+
+METHOD:: getCurr
+get current setting from proxy/chain
+
+METHOD:: setCurr
+set current setting
+argument:: setName
+name of setting
+argument:: absolute
+if true turns off slots not present in setting
+argument:: except
+
+METHOD:: writeSettings
+write settings to disk
+
+METHOD:: loadSettings
+read settings from disk
+
+METHOD:: settingIndex
+argument:: setName
+
+METHOD:: settingNames
+get names of all settings
+
+
+EXAMPLES::
+
+code::
+// Assuming you still have b and c preset from above:
+// make a quick and dirty gui sketch for proxy chains
+(
+w = Window("PCPre", Rect(0,600,500,500));
+w.front;
+w.addFlowLayout;
+e = EZPopUpMenu(w, Rect(0,0,150, 20), \mfxPre, b.settingNames, { |ez|
+	ez.item.postln;
+	b.setCurr(ez.item);
+},
+	labelWidth: 50
+);
+
+[
+	\sto, { |but| b.settings.storeDialog('???', b.getCurr, but.absoluteBounds.center.postcs) },
+	\del, 	{ |but| b.settings.deleteDialog(but.absoluteBounds.center) },
+	\rand, { "randomize ... ".postln.scramble.postln },
+	\doc, { Document(b.asString, b.settings.prettyList);  },
+].keysValuesDo { |key, fun|
+	Button(w, Rect(0,0,60,20)).states_([[key]])
+	.action_(fun)
+};
+
+g = ProxyChainGui(c, 16, w);
+)
+::
+
+
+
+
