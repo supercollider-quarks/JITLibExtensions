@@ -259,6 +259,11 @@ ProxyChain {
 
 	set { |... args| proxy.set(*args) }
 
+	clear {
+		proxy.clear;
+		all.removeAt(this.key);
+	}
+
 		// JIT gui support
 	gui { |numItems = 16, buttonList, parent, bounds, isMaster = false|
 		^ProxyChainGui(this, numItems, parent, bounds, true, buttonList, isMaster);

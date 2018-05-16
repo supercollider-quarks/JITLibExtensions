@@ -4,14 +4,15 @@ categories:: Libraries>JITLib>JITLibExtensions
 related:: Classes/NodeProxy, Classes/Ndef, Classes/ProxyChainGui, Classes/MasterFX, Overviews/JITLib
 
 DESCRIPTION::
-ProxyChain keeps a global repertoire of sound functions by name.
-A ProxyChain is a wrapper around a nodeproxy which keeps an ordered collection of sound functions, which can be added to or removed from the proxy signal chain individually, by name.
+A ProxyChain is a wrapper around a nodeproxy which keeps an ordered collection of sound functions, which can be individually added to or removed from the proxy signal chain, by name.
 
-Like Ndef, Pdef, Tdef, ProxyChain keeps all named instances in a class variable code::ProxyChain.all::, and they can be accessed by name: code::ProxyChain('chain1')::.
+The ProxyChain class keeps a global dictionary of such sound functions, and a ProxyChain can also have local sound functions.
+
+Like Ndef, Pdef, Tdef, the ProxyChain class keeps all named instances in a class variable code::ProxyChain.all:: where they can be accessed by name: code::ProxyChain('chain1')::.
 
 subsection:: First Examples
 
-Basic usage first:
+Basic code-only usage first:
 
 code::
 // add a sound source
@@ -42,6 +43,7 @@ ProxyChain.add(
 ProxyChain.allSources
 
 // now make a ProxyChain that uses them:
+ProxyChain(\test).clear;
 ProxyChain(\test, [\dust, \dist,\ringmod,\comb, \ampFin]);
 
 // access by name
@@ -130,9 +132,12 @@ ProxyChain.add3(
 // ... and now the gui uses these specs:
 ProxyChain(\test, [\dust, \dist,\ringmod,\comb, \ampFin]);
 g = ProxyChain(\test).gui;
-::
 
-Note:: TODO: Gui should use levels as stored with add3... ::
+// slotNames can be changed while they are off, and the gui will show it
+
+ProxyChain(\test).slotNames = [\dust,\ringmod,\comb, \ampFin];
+
+::
 
 CLASSMETHODS::
 
@@ -303,13 +308,12 @@ g = c.gui(20,
 
 		[ '1 > 5', \label ],
 		[ \riseComb5, \slotCtl ],
-		[ ],
 		// extras:
-		// e.g. an editor with more space for controls
-		[\phatEdit, \extra, { c.makeEdit('Test', 40) } ],
+		// e.g. an NdefGui with more space for param controls
+		[\phatEdit, \extra, { c.proxy.gui(40) } ],
 
-		// or maybe bigger buttons play, end buttons
-		[\play, \extra, { c.playN } ],
+		// or maybe bigger buttons for play and end?
+		[\play, \extra, { c.playN.postln } ],
 		[\end, \extra, { c.end(2, true) } ],
 
 	]
@@ -363,5 +367,6 @@ ProxyChain.add3(
 );
 )
 
-// now try kicking it in
+// now try kicking it in from the gui...
+
 ::
