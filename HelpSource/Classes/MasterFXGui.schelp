@@ -1,0 +1,70 @@
+TITLE:: MasterFXGui
+summary:: a JITGui for a MasterFX
+categories:: JITLib
+related:: Classes/MasterFX, Classes/ProxyChainGui
+
+DESCRIPTION::
+MasterFXGui inherits almost everything from ProxyChainGui, with one main difference:
+Because a MasterFX never needs its proxy to play (it reads from and writes to the main output bus directly), its ndefGui has no monitorGui.
+
+First code examples:
+
+code::
+(
+// add some simple functions for a MasterFX, e.g.
+ProxyChain.add3(
+	\testsnd,
+	{ Decay.ar(Impulse.ar(1, [0, 0.5]), 0.1) * SinOsc.ar([300, 450]) },
+	0.1);
+
+ProxyChain.add3(\leak, \filter -> { |in| LeakDC.ar(in) }, 1);
+ProxyChain.add3(\dist, \filter -> { |in| (in * 3).tanh }, 1);
+ProxyChain.add3(\rev,
+	\filterIn -> { |in, decay = 3| CombL.ar(in * 3, 0.1, [0.034, 0.051], decay) },
+	0.2,
+	(decay: [0.1, 100, \exp])
+);
+)
+
+// make a masterfx with 5 example slots
+MasterFX.clear(s.name);
+m = MasterFX(s, 4, [\testsnd, \leak, \dist, \rev, \ampFin]);
+
+// the default gui for it
+g = m.gui;
+
+// or make a more elaborate gui for it
+(
+h = m.gui(\maestro, 16, [
+	[ \RESET, \extra, { \RESET.postcs }],
+	\testsnd,
+	[ \FX, \label],
+	\leak,
+	\dist,
+	\rev,
+	[ \safety, \label],
+	\ampFin
+])
+)
+
+// basic gui adapts even when slotNames change:
+m.slotNames = [\testsnd, \leak, \dist, \rev, \otto, \dingsy, \ampFin ];
+g.parent.front;
+
+// extended gui tries to adapt - but order can become confusing,
+// so it is better to make a new one when you change slotNames
+h.parent.front;
+
+::
+
+CLASSMETHODS::
+
+INSTANCEMETHODS::
+
+private:: accepts
+
+METHOD:: name_
+set the window name
+
+METHOD:: makeEditGui
+creates an ndefGui without a monitor (see description)

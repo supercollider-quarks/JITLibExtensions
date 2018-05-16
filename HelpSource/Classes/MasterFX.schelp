@@ -1,135 +1,13 @@
 TITLE:: MasterFX
-summary:: a highly configurable chain of effects on the main outputs
+summary:: a configurable chain of effects on the main outputs ot a server
 categories:: Control>Effects
 related:: Classes/ProxyChain, Classes/ProxyChainGui
 
-CLASSMETHODS::
+Description::
 
-METHOD:: initClass
-(describe method here)
+A MasterFX can apply effects to the main output channels of a server. One can only make a single MasterFX for each server. Each masterFX contains a link::Classes/ProxyChain:: which handles the named effects slots and their state.
 
-returns:: (describe returnvalue here)
-
-METHOD:: new
-
-ARGUMENT:: server
-the server on which the MasterFX chain will run; default is server.numOutputBusChannels
-
-ARGUMENT:: numChannels
-the number of channels it will work on
-
-ARGUMENT:: slotNames
-the names of the filters/functions to be used, in order of execution;
-
-ARGUMENT:: busIndex
-the bus index where it will process audio.
-
-returns:: (describe returnvalue here)
-
-
-METHOD:: all
-all masterFX, one per server, live here.
-
-returns:: A dictionary
-
-METHOD:: default
-returns:: returns the MasterFX instance for the default server.
-
-METHOD:: maxNumChans
-returns:: maximum number of channels supported.
-
-METHOD:: clear
-clear a specific masterfx
-ARGUMENT:: name
-
-INSTANCEMETHODS::
-
-
-
-METHOD:: gui
-(describe method here)
-
-ARGUMENT:: name
-(describe argument here)
-
-ARGUMENT:: numItems
-(describe argument here)
-
-ARGUMENT:: buttonList
-(describe argument here)
-
-ARGUMENT:: parent
-(describe argument here)
-
-ARGUMENT:: bounds
-(describe argument here)
-
-ARGUMENT:: makeSkip
-(describe argument here)
-
-returns:: (describe returnvalue here)
-
-
-
-
-
-
-
-
-
-
-
-METHOD:: show
-(describe method here)
-
-returns:: (describe returnvalue here)
-
-METHOD:: hide
-(describe method here)
-
-returns:: (describe returnvalue here)
-
-
-
-METHOD:: clear
-clear this MasterFX
-
-
-
-
-METHOD:: pxChain
-returns:: internally used ProxyChain.
-
-METHOD:: numChannels
-returns:: (describe returnvalue here)
-
-METHOD:: server
-returns:: server on which this MasterFX operates
-
-METHOD:: busIndex
-returns:: bus index on which the MasterFX operates
-
-METHOD:: bus
-returns:: bus
-
-METHOD:: group
-returns:: the group
-
-METHOD:: add
-kick in effect
-ARGUMENT:: key
-name of effect
-ARGUMENT:: wet
-wet-level of effect
-ARGUMENT:: func
-an optional func that can locally replace the global func with that name.
-
-METHOD:: remove
-kick out effect
-ARGUMENT:: key
-name of effect
-
-EXAMPLES::
+First examples:
 
 code::
 (
@@ -137,33 +15,46 @@ s.boot;
 
 // define which FX are going to be used.
 // As MasterFX is based on ProxyChain, these FX are the same as in ProxyChain.
-ProxyChain.add(
+ProxyChain.add3(
 	\leakDC,  \filter -> { |in, leak=0.99| LeakDC.ar(in, leak) },
+	1,
+	(\leak: [0.5, 0.999, \exp])
+);
+ProxyChain.add3(
 	\rollClip, \filter -> { |in, clip=0.99, pole=0.2|
 		OnePole.ar(in.clip2(clip), pole ** 0.7);
 	},
+	1,
+	(
+		\clip: [0.0, 1, \amp],
+		\pole: [0, 0.95, \lin]
+	)
+);
+ProxyChain.add3(
 	\krush, \filter -> { |in, bits=16, downsamp=2|
-		var down;
-		in = in.round(0.5 ** bits);
-		down = Latch.ar(in, Impulse.ar(SampleRate.ir / downsamp.max(2)));
+		var krushed = in.round(0.5 ** bits);
+		var down = Latch.ar(in, Impulse.ar(SampleRate.ir / downsamp.max(2)));
 		// below 1/2 downsamp, do xfade:
 		blend(in, down, (downsamp - 1).clip(0, 1));
 	},
-	\ampFin, \filter -> { |in, limDrive=1, ampLimit=0.8, postAmp=1 |
-		Limiter.ar(in * limDrive, ampLimit) * postAmp;
-	}
+	1,
+	(
+		\bits: [16, 1],
+		\downsamp: [1, 100, \exp]
+	)
 );
 
-// and specs for them (e.g. for gui control)
-Spec.add(\leak, [0.5, 0.999, \exp]);
-Spec.add(\clip, [0.0, 1, \amp]);
-Spec.add(\pole, [0, 0.95, \lin]);
-Spec.add(\bits, [16, 1]);
-Spec.add(\downsamp, [1, 100, \exp]);
-Spec.add(\limDrive, \ampx4);
-Spec.add(\ampLimit, \amp);
-Spec.add(\postAmp, \ampx4);
-)
+ProxyChain.add3(
+	\ampFin, \filter -> { |in, drive=1, ampLimit=0.8 |
+		Limiter.ar(in * drive, ampLimit);
+	},
+	1,
+	(
+		\drive: [1, 10, \exp],
+		\ampLimit: \amp
+	)
+);
+);
 
 
 (
@@ -180,17 +71,20 @@ s.scope(8);
 )
 
 // a test signal
-x = { PinkNoise.ar(0.5) * LFNoise2.kr([5, 8, 13, 21]).max(0); }.play;
-
+x = { PinkNoise.ar(0.5) + SinOsc.ar([220, 330]) * LFNoise2.kr([5, 8, 13, 21]).max(0); }.play;
 
 // all MasterFX live here:
 MasterFX.all;
 
 // kick in predefined effects (at full wet level)
 m.add(\leakDC, 1);
-m.add(\rollClip, 1);
-m.add(\dualComp, 1);
-m.add(\ampFin, 1);
+m.set(\leak, 0.8); // filter lows
+
+m.add(\krush, 1);  // bitcrush, downsample
+m.set(\bits, 5, \downsamp, 6);
+
+m.add(\ampFin, 1);  // limit output
+m.set(\drive, 10, 0.3);
 
 // kick out predefined effects (at full wet level)
 m.remove(\leakDC);
@@ -198,10 +92,25 @@ m.remove(\rollClip);
 m.remove(\krush);
 m.remove(\ampFin);
 
+// remove currently unused settings
+m.proxy.cleanNodeMap;
+
+// change slotNames - only while slots are off :
+m.slotNames;
+// this is -> Order[\leakDC, \krush, \rollClip, \ampFin]
+
+// drop rollClip from the list:
+m.slotNames = [\leakDC, \krush, \ampFin];
+
+m.slotNames
+g.object === m;
+
+// TODO: does not update buttons yet
+
 
 (
 // make a more specific GUI - see ProxyChainGui for details
-m.gui(\Mestre, 20, [
+g = m.gui(\Mestre, 20, [
 	[\leakDC, \slotCtl, 1],
 	[\rollClip, \slotCtl, 1],
 	[\krush, \slotCtl, 1],
@@ -210,23 +119,137 @@ m.gui(\Mestre, 20, [
 ])
 )
 
-
-// make a MasterFX on the internal server
-MasterFX(Server.internal, 8, [\leakDC, \rollClip, \dualComp, \ampFin]);
-
-// now there are two MasterFX, one localhost, one internal
-MasterFX.all;
-
-// removing a MasterFX by server name
+// remove a MasterFX by server name
 MasterFX.clear(\localhost); // clear one specific masterfx
 
 // or simply by
 m.clear
 
 // or clear all MasterFX
-MasterFX.clear; // clear all mfxes
+MasterFX.clear;
 
-
-// all gone now:
 MasterFX.all;
 ::
+
+
+CLASSMETHODS::
+
+private:: initClass, make
+
+METHOD:: all
+dictionary for all masterFX, one per server.
+
+METHOD:: default
+the MasterFX instance for the default server.
+
+METHOD:: maxNumChans
+the maximum number of channels supported. (currently unused)
+
+METHOD:: clear
+clear the masterfx at name
+ARGUMENT:: name
+
+
+METHOD:: new
+
+ARGUMENT:: server
+the server on which the MasterFX chain will run; default is server.numOutputBusChannels
+
+ARGUMENT:: numChannels
+the number of channels it will work on
+
+ARGUMENT:: slotNames
+the names of the filters/functions to be used, in order of execution;
+
+ARGUMENT:: busIndex
+the bus index where it will process audio.
+
+
+INSTANCEMETHODS::
+
+METHOD:: key
+the key at which the MasterFx is stored; usually this is the server name.
+
+METHOD:: proxyChain
+the link::Classes/ProxyChain:: that has the order of the effects that can be used
+
+METHOD:: proxy
+the link::Classes/NodeProxy:: inside the the proxyChain.
+
+METHOD:: add
+kick in effect
+ARGUMENT:: key
+name of effect
+ARGUMENT:: wet
+wet-level of effect
+ARGUMENT:: func
+an optional func that can locally replace the global func with that name.
+
+METHOD:: remove
+kick out effect
+ARGUMENT:: key
+name of effect
+
+Method:: set
+set named parameters of the active slots
+
+METHOD:: server
+the server on which this MasterFX operates
+
+METHOD:: numChannels
+the number of output channels of the MasterFX
+
+METHOD:: busIndex
+the index of the bus on which the MasterFX operates
+
+METHOD:: group
+the group in which this masterfx proxy runs.
+this is after the default group.
+
+
+METHOD:: checkingBadValues
+flag whether the masterFX is checking the final output for bad values.
+see also link::Classes/CheckBadValues::
+
+METHOD:: checkBad
+set flag whether to check final output, and if needed start the synth
+
+METHOD:: wakeUp
+Wake up the MasterFX proxy. This happens automatically after CmdPeriod.
+
+METHOD:: clear
+clear this MasterFX; usually so one can remake it.
+
+
+private:: cmdPeriod, makeGroup, makeName, makeBus
+
+METHOD:: pxChain
+alias for the proxyChain.
+
+
+METHOD:: show, hide
+show or hide the MasterFX proxy in Ndef.all for that server.
+the proxy is hidden by default.
+
+
+METHOD:: gui
+make a MasterFXGui for the MasterFX.
+
+ARGUMENT:: name
+the name the gui will show
+
+ARGUMENT:: numItems
+the number of buttons / sliders for parameters the gui will have
+
+ARGUMENT:: buttonList
+an optional list of buttons. by default, this is the list of slotNames.
+
+ARGUMENT:: parent
+the parent view or window on which to place the gui
+ARGUMENT:: bounds
+the bounds of the gui
+
+ARGUMENT:: makeSkip
+a flag whether to make and start a skipjack for the gui update mechanism.
+
+
