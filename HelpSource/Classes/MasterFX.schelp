@@ -102,11 +102,6 @@ m.slotNames;
 // drop rollClip from the list:
 m.slotNames = [\leakDC, \krush, \ampFin];
 
-m.slotNames
-g.object === m;
-
-// TODO: does not update buttons yet
-
 
 (
 // make a more specific GUI - see ProxyChainGui for details
