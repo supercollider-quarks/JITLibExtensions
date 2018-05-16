@@ -1,6 +1,6 @@
 ProxyChainGui : JITGui {
 	var <guiFuncs; // move to classvar!
-	var <butZone, <buttonSpecs, <buttons, <namedButtons, <editGui;
+	var <butZone, <buttonSpecs, <buttons, <namedButtons, <specialButtons, <editGui;
 
 	*new { |chain, numItems = 16, parent, bounds, makeSkip = true, options|
 
@@ -27,6 +27,7 @@ ProxyChainGui : JITGui {
 	makeViews { |options|
 
 		namedButtons = ();
+		specialButtons = ();
 
 		// "PCGui:makeViews: options are %\n\n".postf(options);
 
@@ -35,10 +36,16 @@ ProxyChainGui : JITGui {
 		guiFuncs =  (
 			btlabel: { |but, name| but.states_([[name, Color.black, Color(1, 0.5, 0)]]) },
 			label: { |but, name| but.states_([[name, Color.white, Color(1, 0.5, 0)]]) },
-			slotCtl: { | but, name, level=0|
+			slotCtl: { | but, name, level|
+				var srcDict = ProxyChain.sourceDicts[name];
+				var defLevel = level ?? { srcDict !? { srcDict[\level] } } ? 0;
+
 				but.states_([["[" + name + "]"], [name, Color.black, Color.green(5/7)], ]);
 				but.action_({ |but|
-					[ { this.chain.remove(name) }, { this.chain.add(name, level) } ][but.value].value
+					[
+						{ this.chain.remove(name) },
+						{ this.chain.add(name, defLevel.value) }
+					][but.value].value
 				});
 			},
 
@@ -52,14 +59,14 @@ ProxyChainGui : JITGui {
 		butZone.addFlowLayout;
 		buttons = numItems.collect { Button.new(butZone, Rect(0,0, 100, skin.buttonHeight)).states_([["-"]]); };
 
-		this.buttons_(options.asArray);
+		this.setButtons(options.asArray);
 
 		this.makeEditGui;
 	}
 
 	makeEditGui { editGui = NdefGui(nil, numItems, zone); }
 
-	buttons_ { |specs|
+	setButtons { |specs|
 
 		var objSlotNames = if (object.notNil) { object.slotNames.asArray } { [] };
 
@@ -69,16 +76,21 @@ ProxyChainGui : JITGui {
 		};
 
 		buttons.do { |but, i|
-			var name, kind, func, setup;
+			var name, kind, funcOrLevel, setupFunc;
 			var list = specs[i];
 			but.visible_(list.notNil);
 
 			if (list.notNil) {
-				#name, kind, func, setup = list.asArray;
+				#name, kind, funcOrLevel, setupFunc = list.asArray;
 				kind = kind ? \slotCtl;
+				if (kind == \slotCtl) {
+					namedButtons.put(name, but);
+				} {
+					specialButtons.put(name, but);
+				};
 				if (name.notNil) {
-					guiFuncs[kind].value(but, name, func);
-					setup.value(this, but);
+					guiFuncs[kind].value(but, name, funcOrLevel);
+					setupFunc.value(this, but);
 				};
 				but.enabled_(name.notNil);
 			}
@@ -123,13 +135,16 @@ ProxyChainGui : JITGui {
 		if (newState[\slotNames] != prevState[\slotNames]) {
 		//	"new slotnames: ".post; newState[\slotNames].postcs;
 
-			namedButtons = ();
-			buttons.do { |but|
-				var butname = but.states[0][0].asString.drop(2).drop(-2).asSymbol;
-			//	[\butname, butname].postcs;
-				if (newState[\slotNames].includes(butname)) {
-					namedButtons.put(butname, but);
-				};
+			namedButtons.clear;
+
+			buttons.select { |bt| specialButtons.includes(bt).not }.do { |but, i|
+				var newName = newState[\slotNames][i];
+				but.states_(but.states.collect(_.put(0, newName ? "-")));
+				but.visible = newName.notNil;
+				but.refresh;
+				if (newName.notNil) {
+					namedButtons.put(newName, but)
+				}
 			};
 
 			object.slotNames.do { |name, i|
@@ -149,6 +164,8 @@ ProxyChainGui : JITGui {
 }
 
 MasterFXGui : ProxyChainGui {
+
+	accepts { |obj| ^(obj.isNil or: { obj.isKindOf(MasterFX) }) }
 
 	name_ { |name|
 		if (hasWindow) { parent.name_(name.asString) };
