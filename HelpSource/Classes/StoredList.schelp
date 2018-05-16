@@ -1,0 +1,184 @@
+TITLE:: StoredList
+summary:: store and recall named lists of settings in known locations
+categories:: Collection
+related:: Classes/ProxyPreset, Classes/PxChainPreset
+
+DESCRIPTION::
+
+A StoredList is typically used for storing settings to disk,
+and recalling them later. These are often parameter lists
+of processes like Ndefs, Pdefs, Tdefs.
+StoredList are used in PxChainPreset for now,
+and may be adapted for ProxyPreset as well.
+
+First code examples:
+code::
+z = StoredList(\myTestID);
+
+// a storedList has these internal items:
+z.id.postcs; // this come from an ndef name
+z.list;
+
+// add two named settings:
+z.add(\base, [\amp, 0.25, \freq, 300]);
+z.add(\var1, [\amp, 0.50, \freq, 600]);
+
+// the current list
+z.list
+// or printed more readably
+z.prettyList
+
+// adding by an existing name replaces list at that name
+z.add(\base, [\amp, 0.25, \freq, 444]);
+z.add(\var1, [\amp, 0.50, \freq, 666]);
+z.prettyList
+
+// get names and values separately
+z.names
+z.values
+
+// access by index or name (or array)
+z.at(0)
+z.at(100) // nil outside index range
+z.at(\base); // by name
+z.at(\nope)  // nil when unknown name
+z.at([\base, 1, \nope]); // also by array, also mixed
+
+z.removeAt(\otto); // nil
+z.removeAt(4); // nil
+z.removeAt(0)  // removes base
+z.removeAt(\var1)
+z.list // empty now
+
+z.add(\base, [\amp, 0.25, \freq, 300]);
+z.add(\var1, [\amp, 0.50, \freq, 600]);
+
+/// storage to disk - by default, this is in Platform.userAppSupportDir
+z.write;
+// posts:
+StoredList('myTestID'): stored 2 settings at:
+"/Users/adc/Library/Application Support/SuperCollider/settings/myTestID.pxpreset.scd"
+
+z.filename
+z.dir
+z.storePath
+z.storePath.openOS
+
+// add more settings
+z.add(\base2, [\amp, 0.25, \freq, 444]);
+z.add(\var2, [\amp, 0.50, \freq, 666]);
+z.list.size;
+z.write;
+
+// the currently written settings:
+z.dir.openOS;
+// previous settings are always backed up here:
+z.backupDir.openOS;
+
+// a different storedList object with the same id
+// will read and store the same settings!
+y = StoredList(\myTestID);
+y.read;
+y.list;
+y.storePath == z.storePath
+y.prettyList;
+::
+
+CLASSMETHODS::
+
+METHOD:: new
+create a new storedList object, with
+argument:: id
+a symbol as id
+argument:: list
+an optional list of associations
+argument:: suffix
+a suffix used for storing as file
+
+INSTANCEMETHODS::
+
+private:: printOn, storeArgs
+
+METHOD:: id
+the id of the storedList
+
+METHOD:: list
+the list of stored settings
+
+METHOD:: names, values
+get names and values of stored settings separately
+
+METHOD:: prettyList
+readable post of list, as also used for storage
+
+METHOD:: at
+argument:: nameOrIndex
+access items in the list by name, index or array of names/indices
+
+METHOD:: add
+add a setting to the list by name
+
+METHOD:: removeAt
+argument:: name
+remoce a setting by name or index
+
+METHOD:: indexOf
+argument:: name
+get index in list for given name
+
+subsection:: Storage
+
+METHOD:: addToDisk
+get and set flag whether to write changes to disk
+
+METHOD:: write
+write a setting to disk
+argument:: path
+an optional path - default is auto-created code::storePath::.
+
+METHOD:: dir
+the directory in which to write and read.
+consists of : code:: dirpath +/+ dirname ::
+
+METHOD:: filename
+the filename where settings list will be written and read.
+consists of : code:: <id>.<suffix>.<fileExt> ::
+
+METHOD:: read
+read settings list into the StoredList object.
+argument:: path
+(optional) path of stored file
+argument:: keep
+flag whether to append or clear list first
+argument:: doneFunc
+action to perform when read successfully
+
+METHOD:: storePath
+dir +/+ filename
+
+METHOD:: backupDir
+the directory where to put backups
+
+METHOD:: suffix
+a suffix to append to the filename.
+
+METHOD:: fileExt
+the file extension to use for filename.
+
+METHOD:: local
+tell a StoredList to store locally.
+
+METHOD:: backup
+argument:: path
+move current stored file to backup folder;
+this happens automatically when saving.
+
+METHOD:: dirpath, dirname
+the constituents of code:: .dir ::
+
+
+METHOD:: deleteDialog
+open a dialog for deleting settings
+
+METHOD:: storeDialog
+open a dialog for naming and storing a new setting
