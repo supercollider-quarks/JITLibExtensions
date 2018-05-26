@@ -63,7 +63,7 @@ INSTANCEMETHODS::
 
 private:: accepts
 
-METHOD:: name_
+METHOD:: name
 set the window name
 
 METHOD:: makeEditGui

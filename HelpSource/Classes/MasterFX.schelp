@@ -1,11 +1,14 @@
 TITLE:: MasterFX
 summary:: a configurable chain of effects on the main outputs ot a server
 categories:: Control>Effects
-related:: Classes/ProxyChain, Classes/ProxyChainGui
+related:: Classes/ProxyChain, Classes/ProxyChainGui, Classes/MasterFXGui, Classes/ProxyChainPreset
 
 Description::
 
 A MasterFX can apply effects to the main output channels of a server. One can only make a single MasterFX for each server. Each masterFX contains a link::Classes/ProxyChain:: which handles the named effects slots and their state.
+
+Note that MasterFX can be used with  ProxyChainPreset, see link::Classes/ProxyChainPreset::,
+in the bottom examples.
 
 First examples:
 
