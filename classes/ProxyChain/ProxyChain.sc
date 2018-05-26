@@ -181,6 +181,11 @@ ProxyChain {
 		proxy.getSpec.parent = this.class.getSpec;
 	}
 
+	// TODO: handle case where slots are currently playing!
+	// for every slotsInUse, compare old vs new slots:
+	// if active slot stays at its index, leave it running
+	// if not, remove it at old index
+	// and if it is in the new slotNames, add it again at its new index
 	slotNames_ { |argSlotNames|
 		slotNames.clear;
 		argSlotNames.do { |name, i| slotNames.put(i + 1 * 10, name) };
