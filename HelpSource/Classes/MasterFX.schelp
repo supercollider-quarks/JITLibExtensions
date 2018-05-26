@@ -45,6 +45,13 @@ ProxyChain.add3(
 );
 
 ProxyChain.add3(
+    \comb, \filterIn -> { |in, decay = 3| CombL.ar(in * 0.3, 0.02, [0.03, 0.042], decay) },
+    0.2,
+    (decay: [0.2, 200, \exp])
+);
+
+
+ProxyChain.add3(
 	\ampFin, \filter -> { |in, drive=1, ampLimit=0.8 |
 		Limiter.ar(in * drive, ampLimit);
 	},
@@ -171,6 +178,8 @@ the link::Classes/ProxyChain:: that has the order of the effects that can be use
 METHOD:: proxy
 the link::Classes/NodeProxy:: inside the the proxyChain.
 
+subsection::Methods that get forwarded to proxyChain/proxy:
+
 METHOD:: add
 kick in effect
 ARGUMENT:: key
@@ -187,6 +196,11 @@ name of effect
 
 Method:: set
 set named parameters of the active slots
+
+Method:: slotsInUse
+get the currently used slots of the proxyChain
+Method:: slotNames
+get and set the slotNames of the proxyChain
 
 METHOD:: server
 the server on which this MasterFX operates
@@ -209,6 +223,9 @@ see also link::Classes/CheckBadValues::
 METHOD:: checkBad
 set flag whether to check final output, and if needed start the synth
 
+METHOD:: badSynth
+the synth that does the bad value checking.
+
 METHOD:: wakeUp
 Wake up the MasterFX proxy. This happens automatically after CmdPeriod.
 
@@ -219,7 +236,7 @@ clear this MasterFX; usually so one can remake it.
 private:: cmdPeriod, makeGroup, makeName, makeBus
 
 METHOD:: pxChain
-alias for the proxyChain.
+alias for the proxyChain (the proxyChain inst var was called pxChain earlier).
 
 
 METHOD:: show, hide
