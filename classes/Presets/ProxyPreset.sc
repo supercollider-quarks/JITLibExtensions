@@ -431,13 +431,13 @@ ProxyPreset {
 		win.addFlowLayout;
 		ezlist = EZListView(win, win.bounds.insetBy(4, 4),
 			"DELETE presets from\n%:"
-			"\nselect and backspace".format(this),
+			"\nselect and type D:".format(this),
 			names, nil, labelHeight: 50);
 		ezlist.labelView.align_(\center);
 		ezlist.view.resize_(5);
 		ezlist.widget.resize_(5);
 		ezlist.widget.keyDownAction_({ |view, char|
-			if(char == 8.asAscii) {
+			if(char.toLower == $d) {
 				this.removeSet(view.items[view.value].postln);
 				view.items = this.getSetNames;
 			};
