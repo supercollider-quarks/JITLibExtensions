@@ -5,21 +5,29 @@ related:: Classes/ProxyChain, Classes/MasterFX
 
 DESCRIPTION::
 
+ProxyChainPreset can store presets for ProxyChain objects:
+A setting includes which functions are active (by name),
+and separate parameter settings for each active function.
+
+
 First code examples:
 
 code::
 
-// first, prepare a proxy chain:
 s.boot;
 
+// first, prepare for making a proxy chain:
+
+(
+// some sound functions - first a test source,
 (
 // add a sound source
 ProxyChain.add3(
 	\dust,
 	\mix -> { |dens=20, dustdec=0.02, dustfreq= 600|
-		Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq, dustdec)
+		Ringz.ar(Dust2.ar(dens).lag(0.0001), dustfreq, dustdec)
 	},
-	0,
+	0.2,
 	[
 		\dens, [0.1, 1000, \exp],
 		\dustdec, [0.0001, 0.1, \exp],
@@ -27,21 +35,29 @@ ProxyChain.add3(
 	]
 );
 
-// ... and some effects to use in the chain
+// ... and then some effects to use in the chain
 ProxyChain.add3(
 	\ringmod,
 	\filter -> { |in, randrate=5|
 		in.asArray[0]	 // force mono inputs
 		* SinOsc.ar(LFNoise0.kr([randrate, randrate]).exprange(300, 3000)).sum
-	}, 0,
+	},
+	0.5, // wet/dry mix of 50/50
 	[ \randrate, [0.5, 50, \exp] ]
 );
 
 ProxyChain.add3(
-	\dist, \filter -> { |in, drive=10, amp=0.2| (in.asArray[0] * drive).clip2(0.5) * amp },
-	1,
+	\dist, \filter -> { |in, drive=10, amp=0.2| (in.asArray[0] * drive).tanh * amp },
+	1, // all wet, just the dito
 	[ \drive, [1, 100, \exp] ],
 );
+
+ProxyChain.add3(
+	\comb5, \filterIn -> { |in, drive=10, amp=0.2| (in.asArray[0] * drive).clip2(0.5) * amp },
+	0.2,
+	[ \drive, [1, 100, \exp] ],
+);
+
 
 ProxyChain.add(
 	\ampFin,
@@ -52,17 +68,17 @@ ProxyChain.add(
 		\limit, [0.1, 1.0, \exp]
 	]
 );
+);
 
 // now make a proxy chain and gui for it
 c = ProxyChain(\alpha, [\dust, \ringmod, \dist, \ampFin]);
 c.play;	// play the proxy
 g = c.gui(12).moveTo(0, 800);
-)
 
 
 // 2. make a ProxyChainPreset for c
 b = ProxyChainPreset(c);
-// declare ampFin as always untouched / not stored
+// declare ampFin as always untouched / not to be stored
 b.exceptedSlots = [\ampFin];
 
 
@@ -104,26 +120,6 @@ b.setCurr(\test5);
 
 // now write them to disk
 b.settings.write;
-
-// try adding items from a stored list by hand
-(
-// copied from prettyList:
-~storedList = List[
-	('test1' -> [ ('dust' -> [ [ 'mix10', 0.5 ], [ 'dens', 20 ], [ 'dustdec', 0.02 ], [ 'dustfreq', 600 ] ]), ('ringmod' -> [ [ 'wet20', 1 ], [ 'randrate', 5 ] ]) ]),
-	('test2' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 22.142675857578 ], [ 'dustdec', 0.059306742652702 ], [ 'dustfreq', 3684.0549320609 ] ]), ('ringmod' -> [ [ 'wet20', 0.50756380919269 ], [ 'randrate', 0.78393124499583 ] ]) ]),
-	('test3' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 22.142675857578 ], [ 'dustdec', 0.059306742652702 ], [ 'dustfreq', 3684.0549320609 ] ]), ('ringmod' -> [ [ 'wet20', 0.50756380919269 ], [ 'randrate', 0.78393124499583 ] ]), ('dist' -> [ [ 'wet30', 1 ], [ 'drive', 10 ], [ 'amp', 0.2 ] ]) ]),
-	('test4' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 22.142675857578 ], [ 'dustdec', 0.059306742652702 ], [ 'dustfreq', 3684.0549320609 ] ]), ('dist' -> [ [ 'wet30', 1 ], [ 'drive', 10 ], [ 'amp', 0.2 ] ]) ]),
-	('test5' -> [ ('dust' -> [ [ 'mix10', 0.690537374092 ], [ 'dens', 7 ], [ 'dustdec', 0.01 ], [ 'dustfreq', 3000 ] ]) ])
-];
-// -> now add that list to .list:
-b.settings.list.clear.addAll(~storedList);
-)
-// and test that the settings are here
-b.setCurr(\test1);
-b.setCurr(\test2);
-b.setCurr(\test3);
-b.setCurr(\test4);
-b.setCurr(\test5);
 
 b.settingNames;
 
@@ -191,34 +187,61 @@ get names of all settings
 
 EXAMPLES::
 
-code::
-// Assuming you still have b and c preset from above:
-// make a quick and dirty gui sketch for proxy chains
-(
-w = Window("PCPre", Rect(0,600,500,500));
-w.front;
-w.addFlowLayout;
-e = EZPopUpMenu(w, Rect(0,0,150, 20), \mfxPre, b.settingNames, { |ez|
-	ez.item.postln;
-	b.setCurr(ez.item);
-},
-	labelWidth: 50
-);
+Here is a quick and dirty gui sketch for a ProxyChainPresetGui,
+assuming you still have b and c preset from above around:
 
+code::
+(
+w = Window("PCPre", Rect(0,600,500,500)).front;
+w.addFlowLayout;
+e = EZPopUpMenu(w, Rect(0,0,150, 20), \pcPre, b.settingNames,
+	{ |ez| b.setCurr(ez.item) },
+	labelWidth: 50);
 [
 	\sto, { |but| b.settings.storeDialog('???', b.getCurr, but.absoluteBounds.center.postcs) },
-	\del, 	{ |but| b.settings.deleteDialog(but.absoluteBounds.center) },
-	\rand, { "randomize ... ".postln.scramble.postln },
-	\doc, { Document(b.asString, b.settings.prettyList);  },
+	\del, 	{ |but| b.settings.deleteDialog(but.absoluteBounds.center) }
 ].keysValuesDo { |key, fun|
 	Button(w, Rect(0,0,60,20)).states_([[key]])
 	.action_(fun)
 };
 
-g = ProxyChainGui(c, 16, w);
+g = ProxyChainGui(c, 20, w);
 )
 ::
 
+An example of a MasterFX / ProxyChainPreset combination,
+using the same sound functions as above:
+code::
 
 
+m = MasterFX(s, 2, [\dust, \ringmod, \dist, \ampFin]);
+n = ProxyChainPreset(m.proxyChain);
+n.exceptedSlots = [\ampFin];
 
+// quick and dirty copy of the settings
+n.settings.list.addAll(b.settings.list);
+
+n.settings.names;
+
+n.setCurr(n.settings.names.choose.postcs);
+n.setCurr(\test2);
+n.setCurr(\test3);
+
+// and use the same gui as above for switching masterFX presets:
+(
+w = Window("MasterFX_s presets", Rect(0,600,500,500)).front;
+w.addFlowLayout;
+e = EZPopUpMenu(w, Rect(0,0,150, 20), \mfxPre, b.settingNames,
+	{ |ez| n.setCurr(ez.item) },
+	labelWidth: 50);
+[
+	\sto, { |but| n.settings.storeDialog('???', b.getCurr, but.absoluteBounds.center.postcs) },
+	\del, 	{ |but| n.settings.deleteDialog(but.absoluteBounds.center) }
+].keysValuesDo { |key, fun|
+	Button(w, Rect(0,0,60,20)).states_([[key]])
+	.action_(fun)
+};
+
+g = MasterFXGui(m, 24, w);
+)
+::s
