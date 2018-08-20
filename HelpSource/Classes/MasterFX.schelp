@@ -1,5 +1,5 @@
 TITLE:: MasterFX
-summary:: a configurable chain of effects on the main outputs ot a server
+summary:: a configurable chain of effects on the main outputs of a server
 categories:: Control>Effects
 related:: Classes/ProxyChain, Classes/ProxyChainGui, Classes/MasterFXGui, Classes/ProxyChainPreset
 

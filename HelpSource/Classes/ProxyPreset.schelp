@@ -244,6 +244,10 @@ which set to randomize - if nil, uses currSet
 ARGUMENT:: except
 which keys not to randomize
 
+ARGUMENT:: seed
+a seed number for the random generator
+
+
 METHOD:: setRand
 same as randSet, but sets proxy to the random setting.
 

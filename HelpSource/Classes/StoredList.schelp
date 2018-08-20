@@ -1,7 +1,7 @@
 TITLE:: StoredList
 summary:: store and recall named lists of settings in known locations
 categories:: Collection
-related:: Classes/ProxyPreset, Classes/PxChainPreset
+related:: Classes/ProxyPreset, Classes/ProxyChainPreset
 
 DESCRIPTION::
 
