@@ -23,7 +23,7 @@
 	// single, to match proxy.get
 	getBi { |name|
 		var unmappedVal = this.getUni(name);
-		^if (unmappedVal.isNil) { nil } { unmappedVal.unibi };
+		^if (unmappedVal.isNil) { nil } { unmappedVal * 2 - 1 };
 	}
 
 	getUnis { |...names|
@@ -38,7 +38,7 @@
 		pairs.pairsDo { |param, val, i|
 			var spec = this.getSpec(param);
 			if (spec.notNil) {
-				if(bipolar) { val = val.biuni };
+				if(bipolar) { val = val + 1 * 0.5 };
 				mappedPairs = mappedPairs ++ [param, spec.map(val)];
 			} {
 				("%.%: no spec for %.\n").postf(
