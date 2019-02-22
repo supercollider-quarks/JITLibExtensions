@@ -78,6 +78,10 @@ Halo : Library {
 		var specs = Halo.at(this, \spec);
 		if (name.isNil) { ^specs };
 		if (specs.notNil) { spec = specs.at(name) };
+		if (spec.isNil and: { name == '#' }) {
+			name = this.key;
+			if (specs.notNil) { spec = specs.at(name) };
+		};
 		^spec ?? { name.asSpec }
 	}
 
