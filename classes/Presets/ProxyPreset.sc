@@ -238,6 +238,15 @@ ProxyPreset {
 		this.addSettings(path.load);
 	}
 
+	settingsString {
+		var comment = "///// % settings:\n".format(this);
+		var setStr = settings.asCompileString
+		.replace("List[ (", "List[\n\t(")
+		.replace("), (", "), \n\t(")
+		.replace("]) ]", "]) \n]");
+		^comment ++ setStr
+	}
+
 	writeSettings { |path, overwrite=false|
 		var file;
 		path = path ?? { this.storePath };
@@ -255,7 +264,7 @@ ProxyPreset {
 			^this
 		};
 
-		file.write(this.settings.asCompileString);
+		file.write(this.settingsString);
 		file.close;
 	}
 
