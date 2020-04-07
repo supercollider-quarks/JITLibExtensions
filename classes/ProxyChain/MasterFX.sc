@@ -77,11 +77,13 @@ MasterFX {
 	slotsInUse { ^proxyChain.slotsInUse }
 
 
-	cmdPeriod {
-		group.freeAll; 	// for SharedServers
-						// evil just to wait? hmmm.
-		defer({ this.wakeUp }, 0.2);
-	}
+	// cmdPeriod {
+	// 	group.freeAll; 	// for SharedServers
+	// 	// evil just to wait? hmmm.
+	// 	server.sync;
+	// 	this.wakeUp;
+	// 	// defer({ this.wakeUp }, 0.2);
+	// }
 
 	// hide Ndef by default
 	hide {
@@ -108,7 +110,8 @@ MasterFX {
 		all.put(server.name, this);
 
 		this.makeGroup;
-		CmdPeriod.add(this);
+		ServerTree.add({ this.wakeUp });
+		// CmdPeriod.add(this);
 
 		badDefName = ("BadMasterFX_" ++ server.name).asSymbol;
 		SynthDef(badDefName, {
@@ -134,7 +137,11 @@ MasterFX {
 	wakeUp {
 		"\nMasterFX for server % waking up.\n\n".postf(server.name);
 		this.makeGroup;
+		server.sync;
+		0.1.wait;
 		proxyChain.proxy.wakeUp;
+		server.sync;
+		0.1.wait;
 		this.checkBad;
 	}
 
