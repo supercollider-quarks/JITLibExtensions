@@ -296,11 +296,12 @@ ProxyPreset {
 					[key, spec.map(randVal)];
 				} {
 					"no spec: %\n".postf([key, val]);
+					nil;
 				};
 			};
 		}.valueSeed(seed);
 
-		^randKeysVals;
+		^randKeysVals.reject(_.isNil);
 	}
 
 
