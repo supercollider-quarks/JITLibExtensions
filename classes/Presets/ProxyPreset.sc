@@ -296,6 +296,7 @@ ProxyPreset {
 					[key, spec.map(randVal)];
 				} {
 					"no spec: %\n".postf([key, val]);
+					[]
 				};
 			};
 		}.valueSeed(seed);
