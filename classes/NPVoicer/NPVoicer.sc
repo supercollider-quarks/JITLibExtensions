@@ -54,7 +54,11 @@ NPVoicer {
 
 	release { |key, fadeTime| proxy.removeAt(key, fadeTime) }
 
-	releaseAll { | fadeTime | proxy.release(fadeTime) }
+	releaseAll { | fadeTime |
+		proxy.objects.indices.copy.do { |index|
+			proxy.removeAt(index, fadeTime);
+		}
+	}
 
 	spawn { |args|
 		if (proxy.awake) {
