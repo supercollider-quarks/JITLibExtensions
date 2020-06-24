@@ -41,8 +41,11 @@ ProxyPreset {
 		};
 
 		if (missingSpecNames.notEmpty) {
-			"please supply specs or special funcs for these param names:".postln;
-			missingSpecNames.postln;
+			"// % is missing specs for % parameters!\n"
+			"// Please supply them:\n".postf(this.cs, missingSpecNames.size);
+			missingSpecNames.do { |specName|
+				"%.addSpec(%, [_min_,_max_,_warp_,_step_,_defaultval_]);\n".postf(proxy, specName.cs);
+			};
 			if (dialog) { this.specsDialog(missingSpecNames) };
 		};
 	}
