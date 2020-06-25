@@ -16,15 +16,15 @@
 
 		Button(arZone, Rect(10, 10, 50, skin.headHeight))
 				.states_(
-					[["reduce", skin.fontcolor, skin.offColor]]				)
+					[["reduce", skin.fontColor, skin.offColor]]				)
 				.action_({ object !? { object.reduce } }).font_(font);
 		Button(arZone, Rect(10, 10, 30, skin.headHeight))
 				.states_(
-					[["doc", skin.fontcolor, skin.offColor]]				)
+					[["doc", skin.fontColor, skin.offColor]]				)
 				.action_({ object !? { object.document } }).font_(font);
 		Button(arZone, Rect(10, 10, 45, skin.headHeight))
 				.states_(
-					[["docSel", skin.fontcolor, skin.offColor]]				)
+					[["docSel", skin.fontColor, skin.offColor]]				)
 				.action_({
 					object !? { object.document(this.selectedKeys) }
 				}).font_(font);
@@ -32,9 +32,9 @@
 		Button(arZone, Rect(10, 10, 60, skin.headHeight))
 				.font_(font)
 				.states_([
-						["openKr", skin.fontcolor, skin.offColor],
-						["openEdit", skin.fontcolor, skin.offColor],
-						["closeEdit", skin.fontcolor, skin.offColor]
+						["openKr", skin.fontColor, skin.offColor],
+						["openEdit", skin.fontColor, skin.offColor],
+						["closeEdit", skin.fontColor, skin.offColor]
 					])
 				.value_(1)
 				.action_({ |b| this.switchSize(b.value) });
@@ -42,7 +42,7 @@
 		Button(arZone, Rect(10, 10, 50, skin.headHeight))
 				.font_(font)
 				.states_(
-					[	["Record", Color.red, skin.offColor]					])
+					[	["Record", skin.fontColor, skin.onColor2]					])
 				.action_({ RecordProxyMixer2(this, parent.bounds.resizeTo(472, 100)) });
 
 	}
