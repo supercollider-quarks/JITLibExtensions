@@ -1,4 +1,4 @@
-MasterFX {
+MainFX {
 
 	classvar <all, <maxNumChans = 8;
 	var <group, <numChannels, <busIndex, <server, <proxyChain;
@@ -11,8 +11,8 @@ MasterFX {
 	*default { ^all[Server.default.name] }
 
 
-		// only one masterfx per server ATM.
-		// This could be changed if different MasterFX
+		// only one MainFX per server ATM.
+		// This could be changed if different MainFX
 		// for different groups of output channels are to be used.
 
 	*new { |server, numChannels, slotNames, busIndex|
@@ -24,7 +24,7 @@ MasterFX {
 			serverName = server;
 			server = Server.named[serverName];
 			if (server.isNil) {
-				"*** MasterFX: could not find server for % !\n".postf(serverName.cs);
+				"*** MainFX: could not find server for % !\n".postf(serverName.cs);
 				^nil
 			}
 		};
@@ -33,8 +33,8 @@ MasterFX {
 
 		if (fx.notNil) {
 			if ( [numChannels, slotNames, busIndex].any(_.notNil) ) {
-				"// MasterFX for server % exists, cannot change its settings while running - use\n"
-				"MasterFX.clear(%) \n// to make a new one.\n"
+				"// MainFX for server % exists, cannot change its settings while running - use\n"
+				"MainFX.clear(%) \n// to make a new one.\n"
 				.postf(server.name, server.name.asCompileString);
 			};
 			^fx
@@ -113,7 +113,7 @@ MasterFX {
 		ServerTree.add({ this.wakeUp });
 		// CmdPeriod.add(this);
 
-		badDefName = ("BadMasterFX_" ++ server.name).asSymbol;
+		badDefName = ("BadMainFX_" ++ server.name).asSymbol;
 		SynthDef(badDefName, {
 			var snd = In.ar(busIndex, numChannels);
 			var dt = 0.001;
@@ -135,7 +135,7 @@ MasterFX {
 	}
 
 	wakeUp {
-		"\nMasterFX for server % waking up.\n\n".postf(server.name);
+		"\nMainFX for server % waking up.\n\n".postf(server.name);
 		this.makeGroup;
 		server.sync;
 		0.1.wait;
@@ -167,7 +167,7 @@ MasterFX {
 		buttonList = buttonList ?? { proxyChain.slotNames.collect ([_, \slotCtl, 1]) };
 		name = name ?? { this.makeName };
 		numItems = numItems ? 16;
-		^MasterFXGui(this, numItems, parent, bounds, makeSkip, buttonList)
+		^MainFXGui(this, numItems, parent, bounds, makeSkip, buttonList)
 		.name_(name);
 	}
 
@@ -180,3 +180,10 @@ MasterFX {
 	}
 
 }
+
+// MasterFX : MainFX {
+// 	*new { |server, numChannels, slotNames, busIndex|
+// 		"MasterFX has been renamed MainFX, please adapt your code accordingly.".postln;
+// 		^MainFX.new(server, numChannels, slotNames, busIndex)
+// 	}
+// }

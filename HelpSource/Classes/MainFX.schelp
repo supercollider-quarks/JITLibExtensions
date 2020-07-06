@@ -1,14 +1,16 @@
-TITLE:: MasterFX
+TITLE:: MainFX
 summary:: a configurable chain of effects on the main outputs of a server
 categories:: Control>Effects
-related:: Classes/ProxyChain, Classes/ProxyChainGui, Classes/MasterFXGui, Classes/ProxyChainPreset
+related:: Classes/ProxyChain, Classes/ProxyChainGui, Classes/MainFXGui, Classes/ProxyChainPreset
 
 Description::
 
-A MasterFX can apply effects to the main output channels of a server. One can only make a single MasterFX for each server. Each masterFX contains a link::Classes/ProxyChain:: which handles the named effects slots and their state.
+A MainFX can apply effects to the main output channels of a server. One can only make a single MainFX for each server. Each mainFX contains a link::Classes/ProxyChain:: which handles the named effects slots and their state.
 
-Note that MasterFX can be used with  ProxyChainPreset, see link::Classes/ProxyChainPreset::,
-in the bottom examples.
+Note that MainFX can be used with  ProxyChainPreset, see link::Classes/ProxyChainPreset::, in the bottom examples.
+
+Note:: that MainFX used to be called MasterFX - please rename all uses of it to MainFX.
+::
 
 First examples:
 
@@ -17,7 +19,7 @@ code::
 s.boot;
 
 // define which FX are going to be used.
-// As MasterFX is based on ProxyChain, these FX are the same as in ProxyChain.
+// As MainFX is based on ProxyChain, these FX are the same as in ProxyChain.
 ProxyChain.add3(
 	\leakDC,  \filter -> { |in, leak=0.99| LeakDC.ar(in, leak) },
 	1,
@@ -68,9 +70,9 @@ ProxyChain.add3(
 
 
 (
-// An 8-channel MasterFX on server s.
+// An 8-channel MainFX on server s.
 // The order in slotNames determines order of execution of the efx.
-m = MasterFX.new(server: s,
+m = MainFX.new(server: s,
 	numChannels: 8,
 	slotNames: [\leakDC, \krush, \rollClip, \ampFin],
 	busIndex: 0
@@ -83,8 +85,8 @@ s.scope(8);
 // a test signal
 x = { PinkNoise.ar(0.5) + SinOsc.ar([220, 330]) * LFNoise2.kr([5, 8, 13, 21]).max(0); }.play;
 
-// all MasterFX live here:
-MasterFX.all;
+// all MainFX live here:
+MainFX.all;
 
 // kick in predefined effects (at full wet level)
 m.add(\leakDC, 1);
@@ -124,16 +126,16 @@ g = m.gui(\Mestre, 20, [
 ])
 )
 
-// remove a MasterFX by server name
-MasterFX.clear(\localhost); // clear one specific masterfx
+// remove a MainFX by server name
+MainFX.clear(\localhost); // clear one specific mainFX
 
 // or simply by
 m.clear
 
-// or clear all MasterFX
-MasterFX.clear;
+// or clear all MainFX
+MainFX.clear;
 
-MasterFX.all;
+MainFX.all;
 ::
 
 
@@ -142,23 +144,23 @@ CLASSMETHODS::
 private:: initClass, make
 
 METHOD:: all
-dictionary for all masterFX, one per server.
+dictionary for all mainFX, one per server.
 
 METHOD:: default
-the MasterFX instance for the default server.
+the MainFX instance for the default server.
 
 METHOD:: maxNumChans
 the maximum number of channels supported. (currently unused)
 
 METHOD:: clear
-clear the masterfx at name
+clear the mainFX at name
 ARGUMENT:: name
 
 
 METHOD:: new
 
 ARGUMENT:: server
-the server on which the MasterFX chain will run; default is server.numOutputBusChannels
+the server on which the MainFX chain will run; default is server.numOutputBusChannels
 
 ARGUMENT:: numChannels
 the number of channels it will work on
@@ -173,7 +175,7 @@ the bus index where it will process audio.
 INSTANCEMETHODS::
 
 METHOD:: key
-the key at which the MasterFx is stored; usually this is the server name.
+the key at which the mainFX is stored; usually this is the server name.
 
 METHOD:: proxyChain
 the link::Classes/ProxyChain:: that has the order of the effects that can be used
@@ -206,21 +208,21 @@ Method:: slotNames
 get and set the slotNames of the proxyChain
 
 METHOD:: server
-the server on which this MasterFX operates
+the server on which this MainFX operates
 
 METHOD:: numChannels
-the number of output channels of the MasterFX
+the number of output channels of the MainFX
 
 METHOD:: busIndex
-the index of the bus on which the MasterFX operates
+the index of the bus on which the MainFX operates
 
 METHOD:: group
-the group in which this masterfx proxy runs.
+the group in which this mainFX proxy runs.
 this is after the default group.
 
 
 METHOD:: checkingBadValues
-flag whether the masterFX is checking the final output for bad values.
+flag whether the mainFX is checking the final output for bad values.
 see also link::Classes/CheckBadValues::
 
 METHOD:: checkBad
@@ -230,10 +232,10 @@ METHOD:: badSynth
 the synth that does the bad value checking.
 
 METHOD:: wakeUp
-Wake up the MasterFX proxy. This happens automatically after CmdPeriod.
+Wake up the MainFX proxy. This happens automatically after CmdPeriod.
 
 METHOD:: clear
-clear this MasterFX; usually so one can remake it.
+clear this MainFX; usually so one can remake it.
 
 
 private:: cmdPeriod, makeGroup, makeName, makeBus
@@ -243,12 +245,12 @@ alias for the proxyChain (the proxyChain inst var was called pxChain earlier).
 
 
 METHOD:: show, hide
-show or hide the MasterFX proxy in Ndef.all for that server.
+show or hide the MainFX proxy in Ndef.all for that server.
 the proxy is hidden by default.
 
 
 METHOD:: gui
-make a MasterFXGui for the MasterFX.
+make a MainFXGui for the MainFX.
 
 ARGUMENT:: name
 the name the gui will show
