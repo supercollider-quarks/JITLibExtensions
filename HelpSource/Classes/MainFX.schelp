@@ -37,10 +37,11 @@ ProxyChain.add3(
 );
 ProxyChain.add3(
 	\krush, \filter -> { |in, bits=16, downsamp=2|
-		var krushed = in.round(0.5 ** bits);
+		var krushStep = 0.5 ** (bits + 1);
 		var down = Latch.ar(in, Impulse.ar(SampleRate.ir / downsamp.max(2)));
 		// below 1/2 downsamp, do xfade:
-		blend(in, down, (downsamp - 1).clip(0, 1));
+		blend(in, down, (downsamp - 1).clip(0, 1))
+		.round(krushStep);
 	},
 	1,
 	(
