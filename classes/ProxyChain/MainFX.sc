@@ -181,9 +181,9 @@ MainFX {
 
 }
 
-// MasterFX : MainFX {
-// 	*new { |server, numChannels, slotNames, busIndex|
-// 		"MasterFX has been renamed MainFX, please adapt your code accordingly.".postln;
-// 		^MainFX.new(server, numChannels, slotNames, busIndex)
-// 	}
-// }
+MasterFX : MainFX {
+	*new { |server, numChannels, slotNames, busIndex|
+		"MasterFX has been renamed MainFX, please adapt your code accordingly.".postln;
+		^MainFX.new(server, numChannels, slotNames, busIndex)
+	}
+}
