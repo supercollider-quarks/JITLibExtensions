@@ -163,9 +163,9 @@ ProxyChainGui : JITGui {
 	}
 }
 
-MasterFXGui : ProxyChainGui {
+MainFXGui : ProxyChainGui {
 
-	accepts { |obj| ^(obj.isNil or: { obj.isKindOf(MasterFX) }) }
+	accepts { |obj| ^(obj.isNil or: { obj.isKindOf(MainFX) }) }
 
 	name_ { |name|
 		if (hasWindow) { parent.name_(name.asString) };
@@ -177,3 +177,12 @@ MasterFXGui : ProxyChainGui {
 	}
 }
 
+MasterFXGui : MainFXGui {
+
+	*new { |chain, numItems = 16, parent, bounds, makeSkip = true, options|
+		"MasterFX has been renamed MainFX, and MasterFXGui has been renamed MainFXGui.\n"
+		"Please adapt your code accordingly.".postln;
+		^MainFXGui(chain, numItems, parent, bounds, makeSkip, options);
+	}
+
+}
