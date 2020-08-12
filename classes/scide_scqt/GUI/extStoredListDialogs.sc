@@ -7,7 +7,7 @@
 		^rect
 	}
 
-	storeDialog { |name, newset, loc| 		// check before overwriting a setting?
+	storeDialog { |name, newset, loc, onStore| 		// check before overwriting a setting?
 		var bounds = StoredList.boundsAround(loc, (200@30));
 		var txt = EZText(nil, bounds, "store as:");
 
@@ -15,14 +15,16 @@
 
 		txt.textField.string = name;
 		txt.textField.action = { |tf|
+			var setname = tf.string.asSymbol.postcs;
 			"% - adding setting: ".postf(this);
-			this.add(tf.string.asSymbol.postcs, newset);
+			this.add(setname, newset);
 			txt.textField.parent.parent.close;
+			onStore.value(setname);
 		};
 		^txt
 	}
 
-	deleteDialog { |loc|
+	deleteDialog { |loc, onDelete|
 		var bounds = StoredList.boundsAround(loc, (250@400));
 		var win, names, ezlist;
 
@@ -32,16 +34,17 @@
 		win.addFlowLayout;
 		ezlist = EZListView(win, win.bounds.insetBy(4, 4),
 			"DELETE presets from\n%:"
-			"\nselect and backspace".format(this),
+			"\nselect and type 'd' or backspace".format(this),
 			names, nil, labelHeight: 50);
 		ezlist.labelView.align_(\center);
 		ezlist.view.resize_(5);
 		ezlist.widget.resize_(5);
 		ezlist.widget.keyDownAction_({ |view, char|
-			if(char.toLower == $d) {
+			if(char == 127.asAscii or: { char == $d }) {
 				"% - removing setting: ".postf(this);
 				this.removeAt(view.item.postcs);
 				view.items = this.names;
+				onDelete.value(view.item);
 			};
 		});
 		^win
