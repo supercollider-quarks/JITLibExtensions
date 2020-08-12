@@ -80,7 +80,7 @@ g = c.gui(12).moveTo(0, 800);
 b = ProxyChainPreset(c);
 // declare ampFin as always untouched / not to be stored
 b.exceptedSlots = [\ampFin];
-
+)
 
 b.slotsToStore; // these slots and their values will be stored when active
 c.activeSlotNames; // these are currently active
@@ -191,21 +191,50 @@ Here is a quick and dirty gui sketch for a ProxyChainPresetGui,
 assuming you still have b and c preset from above around:
 
 code::
-(
-w = Window("PCPre", Rect(0,600,500,500)).front;
-w.addFlowLayout;
-e = EZPopUpMenu(w, Rect(0,0,150, 20), \pcPre, b.settingNames,
-	{ |ez| b.setCurr(ez.item) },
-	labelWidth: 50);
-[
-	\sto, { |but| b.settings.storeDialog('???', b.getCurr, but.absoluteBounds.center.postcs) },
-	\del, 	{ |but| b.settings.deleteDialog(but.absoluteBounds.center) }
-].keysValuesDo { |key, fun|
-	Button(w, Rect(0,0,60,20)).states_([[key]])
-	.action_(fun)
-};
+// assumes ProxyChainPreset b is still around
+// writing alpha to disk will store here:
+b.settings.storePath;
+b.settings.filename;
+// set the dirpath to something else:
+b.settings.dirpath;
 
-g = ProxyChainGui(c, 20, w);
+(
+	w = Window("PCPre", Rect(0,600,500,500)).front;
+	w.addFlowLayout;
+	e = EZPopUpMenu(w, Rect(0,0,150, 20), \pcPre, b.settingNames,
+		{ |ez| b.setCurr(ez.item) },
+		labelWidth: 50);
+	[
+		\sto, { |but|
+			b.settings.storeDialog('???',
+				b.getCurr,
+				but.absoluteBounds.center,
+				// store settings to disk?
+				{ b.settings.write }
+			)
+		},
+		\del, 	{ |but|
+			b.settings.deleteDialog(
+				but.absoluteBounds.center,
+				// store settings to disk?
+				{ b.settings.write }
+			)
+		}
+	].keysValuesDo { |key, fun|
+		Button(w, Rect(0,0,60,20)).states_([[key]])
+		.action_(fun)
+	};
+	g = ProxyChainGui(c, 20, w);
+
+	// update e when stored names change:
+	q.pcpSkip = q.pcpSkip ?? {
+		SkipJack({
+			var newnames = b.settings.names;
+			if ( (newnames == q.pcpNames).not) {
+				e.items = newnames;
+			}
+		}, 0.5, w.isClosed);
+	};
 )
 ::
 
@@ -229,19 +258,20 @@ n.setCurr(\test3);
 
 // and use the same gui as above for switching masterFX presets:
 (
-w = Window("MasterFX_s presets", Rect(0,600,500,500)).front;
-w.addFlowLayout;
-e = EZPopUpMenu(w, Rect(0,0,150, 20), \mfxPre, b.settingNames,
-	{ |ez| n.setCurr(ez.item) },
-	labelWidth: 50);
-[
-	\sto, { |but| n.settings.storeDialog('???', b.getCurr, but.absoluteBounds.center.postcs) },
-	\del, 	{ |but| n.settings.deleteDialog(but.absoluteBounds.center) }
-].keysValuesDo { |key, fun|
-	Button(w, Rect(0,0,60,20)).states_([[key]])
-	.action_(fun)
-};
+	w = Window("MasterFX_s presets", Rect(0,600,500,500)).front;
+	w.addFlowLayout;
+	e = EZPopUpMenu(w, Rect(0,0,150, 20), \mfxPre, b.settingNames,
+		{ |ez| n.setCurr(ez.item) },
+		labelWidth: 50);
+	[
+		\sto, { |but| n.settings.storeDialog('???', b.getCurr, but.absoluteBounds.center.postcs) },
+		\del, 	{ |but| n.settings.deleteDialog(but.absoluteBounds.center) }
+	].keysValuesDo { |key, fun|
+		Button(w, Rect(0,0,60,20)).states_([[key]])
+		.action_(fun)
+	};
 
-g = MasterFXGui(m, 24, w);
+	g = MasterFXGui(m, 24, w);
 )
-::s
+::
+
