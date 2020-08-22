@@ -270,4 +270,66 @@ the bounds of the gui
 ARGUMENT:: makeSkip
 a flag whether to make and start a skipjack for the gui update mechanism.
 
+EXAMPLES::
+code::
+// An example for setting up shared controls between slots:
+// volume levels of both a slap delay and a comb reverb are scaled by \globalwet.
+(
+// first, add global spec for \globalwet:
+Spec.add(\globalwet, [0, 4, \amp]);
 
+// then make a dummy first slot function that has all global controls,
+ProxyChain.add3(
+	\globalz, { |globalwet = 1|
+		// but does not add any sound to the proxychain:
+		Silent.ar
+	}
+);
+
+// add slap delay that uses globalwet scaler
+ProxyChain.add3(
+    \slap, \filterIn -> { |in, globalwet = 1, dtl = 0.25, dtr = 0.3333|
+		DelayN.ar(in.reverse * globalwet, 1.0, [dtl, dtr])
+	},
+    0.38,
+    (dtl: [0, 1], dtr: [0, 1], decay: [1, 200, \exp])
+);
+
+// add simple comb reverb that uses globalwet scaler
+ProxyChain.add3(
+	\comb, \filterIn -> { |in, globalwet = 1, decay = 3|
+		CombL.ar(in * (0.3 * globalwet), 0.02, LFDNoise3.kr(0.1!2).range(0.01, 0.03), decay)
+	},
+    0.38,
+    (decay: [0.2, 200, \exp])
+);
+
+// make a MainFX that uses globals
+MainFX.clear('localhost');
+m = MainFX.new(server: s,
+	numChannels: 2,
+	slotNames: [\globalz, \something, \slap, \other, \comb, \final],
+	busIndex: 0
+);
+///// add globalz by default!
+m.add(\globalz);
+
+// make a gui to show state:
+g = m.gui; // a GUI
+)
+
+// NOW, test globalwet control:
+// run a simple test sound
+x = { Splay.ar(Ringz.ar(Impulse.ar(0.3 * [2, 3, 5]), [2, 3, 5] * 300, 0.5/[2, 3, 5])) }.play;
+
+m.add(\slap, 0.38); // turn on slapback
+m.set(\globalwet, 0.5); // drier
+m.set(\globalwet, 2); // wetter
+m.set(\globalwet, 1); // normal
+
+m.add(\comb, 0.38); // turn on comb
+m.set(\globalwet, 0.25); // much drier, slap and comb!
+m.set(\globalwet, 2); // wetter
+m.set(\globalwet, 1); // normal again
+
+::
