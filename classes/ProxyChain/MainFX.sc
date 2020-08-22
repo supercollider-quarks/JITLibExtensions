@@ -164,7 +164,7 @@ MainFX {
 
 	gui { |name, numItems, buttonList, parent, bounds, makeSkip = true|
 		// the effects are all on by default:
-		buttonList = buttonList ?? { proxyChain.slotNames.collect ([_, \slotCtl, 1]) };
+		buttonList = buttonList ?? { proxyChain.slotNames.collect ([_, \slotCtl]) };
 		name = name ?? { this.makeName };
 		numItems = numItems ? 16;
 		^MainFXGui(this, numItems, parent, bounds, makeSkip, buttonList)

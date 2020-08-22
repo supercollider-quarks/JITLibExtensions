@@ -29,7 +29,6 @@ ProxyChainGui : JITGui {
 		namedButtons = ();
 		specialButtons = ();
 
-		// "PCGui:makeViews: options are %\n\n".postf(options);
 
 		options = options ?? { if(object.notNil) { object.slotNames.asArray } };
 
@@ -38,7 +37,7 @@ ProxyChainGui : JITGui {
 			label: { |but, name| but.states_([[name, Color.white, Color(1, 0.5, 0)]]) },
 			slotCtl: { | but, name, level|
 				var srcDict = ProxyChain.sourceDicts[name];
-				var defLevel = level ?? { srcDict !? { srcDict[\level] } } ? 0;
+				var defLevel = level ?? { srcDict !? { srcDict[\level] } } ? 1;
 
 				but.states_([["[" + name + "]"], [name, Color.black, Color.green(5/7)], ]);
 				but.action_({ |but|
