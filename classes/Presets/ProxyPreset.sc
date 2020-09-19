@@ -250,7 +250,7 @@ ProxyPreset {
 		.replace("List[ (", "List[\n\t(")
 		.replace("), (", "), \n\t(")
 		.replace("]) ]", "]) \n]");
-		^comment ++ setStr
+		^comment ++ setStr ++ "\n"
 	}
 
 	writeSettings { |path, overwrite=false|
@@ -273,7 +273,6 @@ ProxyPreset {
 		file.write(this.settingsString);
 		file.close;
 	}
-
 
 	// randomize settings:
 
@@ -319,7 +318,7 @@ ProxyPreset {
 
 		{
 			namesToDrop = keys.scramble.drop(keys.size - numToKeep);
-			this.setRand(rand, except: namesToDrop.postln, seed: seed);
+			this.setRand(rand, except: namesToDrop, seed: seed);
 
 		}.valueSeed(seed);
 
