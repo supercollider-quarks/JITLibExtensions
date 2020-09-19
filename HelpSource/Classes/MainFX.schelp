@@ -51,6 +51,14 @@ ProxyChain.add3(
 );
 
 ProxyChain.add3(
+    \slap, \filterIn -> { |in, dtl = 0.25, dtr = 0.375, decay = 3|
+		CombL.ar(in, 1.0, [dtl, dtr], decay)
+	},
+    0.2,
+    (dtl: [0, 1], dtr: [0, 1], decay: [1, 200, \exp])
+);
+
+ProxyChain.add3(
     \comb, \filterIn -> { |in, decay = 3| CombL.ar(in * 0.3, 0.02, [0.03, 0.042], decay) },
     0.2,
     (decay: [0.2, 200, \exp])
