@@ -117,10 +117,9 @@ ProxyPreset {
 		name = this.checkName(name);
 		index = this.getIndex(name);
 
-		// - NDEF-specific! abstract out later //
 		values = values ?? { this.getFromProxy.copy };
 
-		// writeBackup
+		// write settings before storage to backup
 		if (toDisk) {
 			this.writeSettings(storePath.splitext.insert(1, "_BK.").join, true);
 		};
