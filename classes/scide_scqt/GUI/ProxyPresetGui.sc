@@ -60,21 +60,21 @@ ProxyPresetGui : JITGui {
 			object.morphVal_(0);
 		});
 
-		storeBtn = Button(zone, Rect(0, 0, 40, butHeight))
+		storeBtn = Button(zone, Rect(0, 0, 32, butHeight))
 		.states_([["sto", skin.fontColor, skin.foreground]])
 		.font_(font)
 		.action_({ object.storeDialog(loc:
 			(parent.bounds.left @ parent.bounds.top))
 		});
 
-		delBtn =  Button(zone, Rect(0,0, 40, butHeight))
+		delBtn =  Button(zone, Rect(0,0, 32, butHeight))
 		.states_([["del", skin.fontColor, skin.foreground]])
 		.font_(font)
 		.action_({ object.deleteDialog(loc:
 			(parent.bounds.left - 100 @ parent.bounds.bottom))
 		});
 
-		Button(zone, Rect(0,0,40, butHeight))
+		Button(zone, Rect(0,0, 32, butHeight))
 		.states_([["rand", skin.fontColor, skin.foreground]])
 		.font_(font)
 		.action_({ |but, modif|
@@ -86,7 +86,12 @@ ProxyPresetGui : JITGui {
 			};
 		});
 
-		Button(zone, Rect(0,0, 40, butHeight))
+		Button(zone, Rect(0,0, 32, butHeight))
+		.states_([["edit", skin.fontColor, skin.foreground]])
+		.font_(font)
+		.action_({ object.openSettingsFile });
+
+		Button(zone, Rect(0,0, 32, butHeight))
 		.states_([["doc", skin.fontColor, skin.foreground]])
 		.font_(font)
 		.action_({ object.postSettings });
