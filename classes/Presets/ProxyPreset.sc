@@ -6,7 +6,7 @@
 ProxyPreset {
 
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
-	var <currSet, <targSet, count = 0, <>morphVal = 0, <morphTask;
+	var <currSet, <targSet, <>addsToTop = false, <>morphVal = 0, <morphTask;
 
 	var <>storeToDisk = false, <>storePath;
 
@@ -112,7 +112,7 @@ ProxyPreset {
 		});
 	}
 
-	addSet { |name, values, toDisk=false|
+	addSet { |name, values, toDisk=false, toTop|
 		var index;
 		name = this.checkName(name);
 		index = this.getIndex(name);
@@ -127,7 +127,11 @@ ProxyPreset {
 		if (index.notNil) {
 			settings.put(index, name -> values)
 		} {
-			settings.add(name -> values);
+			if (toTop ? addsToTop) {
+				settings.insert(1, name -> values)
+			} {
+				settings.add(name -> values)
+			};
 		};
 		// friendlier with auto-backup...
 		if (toDisk) { this.writeSettings(overwrite: true); };
