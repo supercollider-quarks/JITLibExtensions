@@ -1,6 +1,6 @@
 ProxyChainPreset {
 	classvar <all;
-	var <key, <chain, <proxy, <settings;
+	var <key, <chain, <proxy, <settings, <currSet;
 	var <>exceptedSlots;
 
 	*initClass {
@@ -54,6 +54,21 @@ ProxyChainPreset {
 	writeSettings { settings.write }
 	loadSettings { settings.load }
 
+	// HH added methods for setCurrByIndex, stepCurr, and, later, xset!
+	setCurrByIndex { |index=0, absolute = true, except|
+		var name = settings.names @@ index;
+		// "setCurrByIndex: new name: %\n".postf(name);
+		this.setCurr(name, absolute = true, except)
+	}
+
+	stepCurr { |incr=1|
+		var currIndex = this.settingIndex(currSet) ? 0;
+		var newIndex = currIndex + incr % settings.list.size;
+		// "stepCurr: currIndex: %, newIndex %\n".postf(currIndex, newIndex);
+		this.setCurrByIndex(newIndex);
+	}
+
+
 	// set immediately for now
 	setCurr { |setName, absolute = true, except|
 		var newset = settings.at(setName);
@@ -62,6 +77,8 @@ ProxyChainPreset {
 			"%: no preset named %!\n".postf(this, setName.cs);
 			^this
 		};
+
+		currSet = setName;
 
 		newSlotNames = newset.value.collect(_.key);
 		"%: preset % activates these slots: %\n".postf(this, setName, newSlotNames);
@@ -79,7 +96,7 @@ ProxyChainPreset {
 			slotNamesToRemove.removeAll(newSlotNames);
 			slotNamesToRemove.removeAll(exceptedSlots);
 			slotNamesToRemove.removeAll(except);
-			"%: preset % stops slots: %\n".postf(this, setName, slotNamesToRemove);
+			// "%: preset % stops slots: %\n".postf(this, setName, slotNamesToRemove);
 			slotNamesToRemove.do { |name| chain.remove(name) };
 			chain.proxy.cleanNodeMap;
 		};
