@@ -32,6 +32,10 @@ ProxyPreset {
 		this.setTarg(\curr);
 	}
 
+	checkName { |name|
+		^(name ?? { "set_" ++ (settings.size + 1) }).asSymbol
+	}
+
 	checkSpecsMissing { |autoFill = false, dialog = false|
 		// for all missing specs, ask user ...
 
@@ -110,8 +114,7 @@ ProxyPreset {
 
 	addSet { |name, values, toDisk=false|
 		var index;
-		if (name.isNil, { count = count + 1; name = "set" ++ count; });
-		name = name.asSymbol;
+		name = this.checkName(name);
 		index = this.getIndex(name);
 
 		// - NDEF-specific! abstract out later //

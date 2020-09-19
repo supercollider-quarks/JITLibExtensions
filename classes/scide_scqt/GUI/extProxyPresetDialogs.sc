@@ -9,7 +9,7 @@
 	storeDialog { |name, loc| 		// check before overwriting a setting?
 		var w;
 		loc = loc ?? {400@300};
-		if (name.isNil, { count = count + 1; name = "set" ++ count; });
+		name = this.checkName(name);
 		w = Window("", Rect(loc.x, loc.y + 40, 150, 40), false);
 		StaticText(w, Rect(0,0,70,20)).align_(\center).string_("name set:");
 		TextField(w, Rect(70,0,70,20)).align_(\center)
