@@ -54,13 +54,19 @@ SynthDef(\pingbend,
 
 )
 
-	// then make a ProxyPreset for for the Tdef:
-	// for Tdefs, best use TdefPreset.
+	// then make a ProxyPreset for the Tdef;
+	// for Tdefs, best use the TdefPreset class
 b = TdefPreset(a);
+// these are the param names for which settings are stored,
+// taken from all proxy keys ...
+b.namesToStore;
 
-
-// these are the param names for which settings are stored
-// they can be reordered, see ParamGui help file.
+// unless  you set namesToStore by hand:
+// clear preset
+TdefPreset.all.removeAt(\a);
+// make new one,  use namesToStore argument:
+b = TdefPreset(a, [\freq, \sustain, \dt, \bend, \bendVar ]);
+// check
 b.namesToStore;
 
 	// add the current state of the envir as a setting
@@ -72,9 +78,17 @@ b.setRand(0.25); b.addSet(\bobo);
 b.setRand(0.25); b.addSet(\coco);
 b.someRand(0.25, 0.5); b.addSet(\dad);
 )
-	//
+// by default, add set adds newsettings at the end
 b.getSetNames;
 b.settings.printcsAll;"";
+
+// the flag to add new setting to the top:
+b.addsToTop;
+// set it to add to top:
+b.addsToTop = true;
+b.setRand(0.25); b.addSet(\eedee);
+// eedee was added at beginning, after curr
+b.getSetNames;
 
 b.setCurr(b.getSetNames.choose.postln);
 b.setTarg(b.getSetNames.choose.postln);
