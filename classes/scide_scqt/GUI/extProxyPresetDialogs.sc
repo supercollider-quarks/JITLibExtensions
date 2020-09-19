@@ -1,9 +1,18 @@
 + ProxyPreset {
 
 	postSettings {
-		this.as
-		("<pxPresetNameHere>.addSettings(" + settings.asCompileString + ")")
-		.newTextWindow(proxy.key ++ ".pxpreset.scd");
+		Document(proxy.key ++ ".pxpreset.scd",
+		this.settingsString);
+	}
+
+	openSettingsFile {
+		var foundfile = this.storePath.pathMatch.first;
+		if (foundfile.notNil) {
+			Document.open(foundfile);
+		} {
+			"%: no file at storePath, putting settings into document.".postln;
+			this.postSettings
+		}
 	}
 
 	storeDialog { |name, loc| 		// check before overwriting a setting?
