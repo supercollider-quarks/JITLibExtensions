@@ -1,7 +1,7 @@
 TITLE:: ProxyChainPreset
 summary:: a preset class for ProxyChain
 categories:: JITLib
-related:: Classes/ProxyChain, Classes/MasterFX
+related:: Classes/ProxyChain, Classes/MainFX
 
 DESCRIPTION::
 
@@ -238,12 +238,12 @@ b.settings.dirpath;
 )
 ::
 
-An example of a MasterFX / ProxyChainPreset combination,
+An example of a MainFX / ProxyChainPreset combination,
 using the same sound functions as above:
 code::
 
 
-m = MasterFX(s, 2, [\dust, \ringmod, \dist, \ampFin]);
+m = MainFX(s, 2, [\dust, \ringmod, \dist, \ampFin]);
 n = ProxyChainPreset(m.proxyChain);
 n.exceptedSlots = [\ampFin];
 
@@ -256,9 +256,9 @@ n.setCurr(n.settings.names.choose.postcs);
 n.setCurr(\test2);
 n.setCurr(\test3);
 
-// and use the same gui as above for switching masterFX presets:
+// and use the same gui as above for switching MainFX presets:
 (
-	w = Window("MasterFX_s presets", Rect(0,600,500,500)).front;
+	w = Window("MainFX_s presets", Rect(0,600,500,500)).front;
 	w.addFlowLayout;
 	e = EZPopUpMenu(w, Rect(0,0,150, 20), \mfxPre, b.settingNames,
 		{ |ez| n.setCurr(ez.item) },
@@ -271,7 +271,7 @@ n.setCurr(\test3);
 		.action_(fun)
 	};
 
-	g = MasterFXGui(m, 24, w);
+	g = MainFXGui(m, 24, w);
 )
 ::
 
