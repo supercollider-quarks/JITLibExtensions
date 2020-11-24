@@ -43,8 +43,8 @@ MainFX {
 		}
 	}
 
-	*make { |server, numChannels, slotNames|
-		^super.new.init(server, numChannels, slotNames);
+	*make { |server, numChannels, slotNames, busIndex|
+		^super.new.init(server, numChannels, slotNames, busIndex);
 	}
 
 	makeBus {
