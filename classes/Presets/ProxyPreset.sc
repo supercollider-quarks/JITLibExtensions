@@ -45,8 +45,8 @@ ProxyPreset {
 		};
 
 		if (missingSpecNames.notEmpty) {
-			"// % is missing specs for % parameters!\n"
-			"// Please supply them:\n".postf(this.cs, missingSpecNames.size);
+			"// % for % is missing specs for % parameters!\n"
+			"// Please supply them:\n".postf(this.class, proxy, missingSpecNames.size);
 			missingSpecNames.do { |specName|
 				"%.addSpec(%, [_min_,_max_,_warp_,_step_,_defaultval_]);\n".postf(proxy, specName.cs);
 			};
