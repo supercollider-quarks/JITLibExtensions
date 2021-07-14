@@ -169,14 +169,14 @@ ProxyPreset {
 
 	setRelFrom { |name, values|
 		var newSettings = this.getSetNorm(name) + values;
-		proxy.setUni(*newSettings.flat);
+		proxy.setUni(*newSettings.flatten(1));
 	}
 
 	setCurr { |name|
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
 			currSet = foundSet;
-			proxy.set(*currSet.value.flat);
+			proxy.set(*currSet.value.flatten(1));
 			this.morphVal_(0);
 		};
 	}
@@ -225,7 +225,7 @@ ProxyPreset {
 		this.setTarg(settings.wrapAt(targIndex + incr).key);
 	}
 
-	setProxy { |name| proxy.set(*this.getSet(name).value.flat) }
+	setProxy { |name| proxy.set(*this.getSet(name).value.flatten(1)) }
 
 
 	// STORAGE to Disk:
@@ -329,7 +329,7 @@ ProxyPreset {
 
 	setRand { |rand, startSet, except, seed|
 		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except, seed).flat);
+		proxy.set(*this.randSet(rand, startSet, except, seed).flatten(1));
 		this.prepMorph;
 	}
 
@@ -346,7 +346,7 @@ ProxyPreset {
 
 	morph { |blend, name1, name2, mapped=true|
 		morphVal = blend;
-		proxy.set(*(this.blend(blend, name1, name2, mapped).flat));
+		proxy.set(*(this.blend(blend, name1, name2, mapped).flatten(1)));
 	}
 
 	xfadeTo { |target, dur, doneFunc|
