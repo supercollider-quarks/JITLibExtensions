@@ -174,7 +174,7 @@ ProxyMeter.addNdefGui(n);
 ProxyMeter.removeNdefGui(n);
 
 g = MonitorGui(Ndef(\a));
-ProxyMeter.addMonitorGui(n);
-ProxyMeter.removeMonitorGui(n);
+ProxyMeter.addMonitorGui(g);
+ProxyMeter.removeMonitorGui(g);
 
 ::
