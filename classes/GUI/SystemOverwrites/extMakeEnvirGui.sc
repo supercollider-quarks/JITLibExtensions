@@ -1,6 +1,29 @@
+/* tests:
+Ndef('x').gui;
+Ndef('x')[5] = \mix -> { Dust2.ar };
+// -> should should show wet5 at 1, full level
+// true:
+\wet1.isFilterRole  // true
+\mix5.isFilterRole  // true
+\wet.isFilterRole    //false
+\mix5berta.isFilterRole // false
+\wet2234d.isFilterRole  // false
+*/
+
 + Symbol {
+	// support for nodeproxy filter roles
 	isFilterRole {
-		^["wet", "mix" ].any { |role| this.asString.beginsWith(role) }
+		var str, splitIndex, head, tail;
+		str = this.asString;
+		splitIndex = str.detectIndex(_.isDecDigit);
+		if (splitIndex.isNil) { ^false };
+
+		head = str.keep(splitIndex);
+		// roles could be looked up somewhere
+		if ([ "wet", "mix" ].any (_ == head).not) { ^false };
+
+		tail = str.drop(splitIndex);
+		^tail.every(_.isDecDigit);
 	}
 }
 
