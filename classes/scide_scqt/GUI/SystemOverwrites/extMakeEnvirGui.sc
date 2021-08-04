@@ -1,5 +1,16 @@
++ Symbol {
+	isFilterRole {
+		^["wet", "mix" ].any { |role| this.asString.beginsWith(role) }
+	}
+}
+
 + Spec {
+
 	*guess { |key, value|
+
+		if (key.isFilterRole) { ^[0, 1].asSpec };
+
+		if (value.isKindOf(Array)) { value = value[0] };
 		if (value.isKindOf(SimpleNumber).not) { ^nil };
 
 		// label units as \guess so one can throw spec away later.
