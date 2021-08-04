@@ -103,7 +103,7 @@ MainFX {
 
 		this.makeGroup;
 		"mainfx.init".postln;
-		ServerTree.add(this);
+		ServerTree.add(this, server);
 
 		checkingBadValues = \Safety.asClass.isNil;
 
