@@ -49,10 +49,15 @@
 		ezlist.labelView.align_(\center);
 		ezlist.view.resize_(5);
 		ezlist.widget.resize_(5);
+		ezlist.widget.action = { |view|
+			this.setCurr(view.item);
+		};
 		ezlist.widget.keyDownAction_({ |view, char|
+			var prevVal = view.value;
 			if(char.toLower == $d) {
 				this.removeSet(view.items[view.value].postln);
 				view.items = this.getSetNames;
+				view.value = prevVal;
 			};
 		});
 		^win
