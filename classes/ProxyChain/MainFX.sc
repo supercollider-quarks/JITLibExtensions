@@ -39,7 +39,7 @@ MainFX {
 			};
 			^fx
 		} {
-			"MainFX - going into make".postln;
+			// "MainFX - going into make".postln;
 			^this.make(server, numChannels, slotNames, busIndex ? 0)
 		}
 	}
@@ -102,7 +102,7 @@ MainFX {
 		all.put(server.name, this);
 
 		this.makeGroup;
-		"mainfx.init".postln;
+		// "mainfx.init".postln;
 		ServerTree.add(this, server);
 
 		checkingBadValues = \Safety.asClass.isNil;
@@ -137,7 +137,7 @@ MainFX {
 	}
 
 	clear {
-		ServerTree.remove(this);
+		ServerTree.remove(this, server);
 		proxyChain.proxy.clear;
 		all.removeAt(proxyChain.proxy.server.name);
 	}
