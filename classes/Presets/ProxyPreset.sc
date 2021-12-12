@@ -45,8 +45,8 @@ ProxyPreset {
 		};
 
 		if (missingSpecNames.notEmpty) {
-			"// % is missing specs for % parameters!\n"
-			"// Please supply them:\n".postf(this.cs, missingSpecNames.size);
+			"// % for % is missing specs for % parameters!\n"
+			"// Please supply them:\n".postf(this.class, proxy, missingSpecNames.size);
 			missingSpecNames.do { |specName|
 				"%.addSpec(%, [_min_,_max_,_warp_,_step_,_defaultval_]);\n".postf(proxy, specName.cs);
 			};
@@ -99,13 +99,15 @@ ProxyPreset {
 
 		morphTask = TaskProxy({ |ev|
 			var numSteps;
+
 			ev[\dt] = ev[\dt] ? 0.01;
+			ev[\mapped] = ev[\mapped]?true;
 			ev[\morphTime] = ev[\morphTime] ? 1;
 			this.prepMorph;
 
 			numSteps = ev[\morphTime] / ev[\dt];
 			numSteps.do { |i|
-				this.morph(1 + i / numSteps);
+				this.morph(1 + i / numSteps, mapped:ev[\mapped]);
 				ev[\dt].wait;
 			};
 			ev[\doneFunc].value;
@@ -169,14 +171,14 @@ ProxyPreset {
 
 	setRelFrom { |name, values|
 		var newSettings = this.getSetNorm(name) + values;
-		proxy.setUni(*newSettings.flat);
+		proxy.setUni(*newSettings.flatten(1));
 	}
 
 	setCurr { |name|
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
 			currSet = foundSet;
-			proxy.set(*currSet.value.flat);
+			proxy.set(*currSet.value.flatten(1));
 			this.morphVal_(0);
 		};
 	}
@@ -225,7 +227,7 @@ ProxyPreset {
 		this.setTarg(settings.wrapAt(targIndex + incr).key);
 	}
 
-	setProxy { |name| proxy.set(*this.getSet(name).value.flat) }
+	setProxy { |name| proxy.set(*this.getSet(name).value.flatten(1)) }
 
 
 	// STORAGE to Disk:
@@ -329,13 +331,24 @@ ProxyPreset {
 
 	setRand { |rand, startSet, except, seed|
 		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except, seed).flat);
+		proxy.set(*this.randSet(rand, startSet, except, seed).flatten(1));
 		this.prepMorph;
 	}
 
 	// morphing:
 	blendSets { |blend = 0.5, set1, set2|
-		^set1.blend(set2, blend);
+		var res, d1,d2, dr;
+
+		// res=set1.blend(set2, blend);
+
+		// LVR: dealing with partial presets
+		d1=Dictionary.newFrom(set1.flat);
+		d2=Dictionary.newFrom(set2.flat);
+		dr=d1.blend(d2,blend);
+
+		res=dr.asSortedArray;
+
+		^res;
 	}
 
 	prepMorph {
@@ -346,10 +359,10 @@ ProxyPreset {
 
 	morph { |blend, name1, name2, mapped=true|
 		morphVal = blend;
-		proxy.set(*(this.blend(blend, name1, name2, mapped).flat));
+		proxy.set(*(this.blend(blend, name1, name2, mapped).flatten(1)));
 	}
 
-	xfadeTo { |target, dur, doneFunc|
+	xfadeTo { |target, dur, doneFunc, mapped=true|
 		var newTargSet;
 		if (target.notNil) {
 			newTargSet = this.getSet(target);
@@ -360,6 +373,7 @@ ProxyPreset {
 			};
 			morphTask.set(\morphTime, dur);
 			morphTask.set(\doneFunc, doneFunc);
+			morphTask.set(\mapped, mapped); // LVR: for cases when we don't want the spec mechanism
 			morphTask.stop.play;
 		};
 	}
@@ -381,6 +395,7 @@ ProxyPreset {
 			^this;
 		};
 
+
 		if (mapped) {
 			set1 = this.unmapSet(set1);
 			set2 = this.unmapSet(set2);
@@ -395,9 +410,11 @@ ProxyPreset {
 		var key, val;
 		^set.collect { |pair|
 			#key, val = pair;
+
 			[key, specs[key].map(val)]
 		}
 	}
+
 	// expects just list of [key, val]s
 	unmapSet { |set|
 		var key, val;
