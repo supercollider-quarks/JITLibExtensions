@@ -179,8 +179,6 @@ ProxyPreset {
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
 			currSet = foundSet;
-			proxy.set(*currSet.value.flatten(1));
-			this.morphVal_(0);
 		};
 	}
 
@@ -369,15 +367,15 @@ ProxyPreset {
 
 		if (morphStep > 0) {
 			if (currSet.isNil) { ^this };
-			morphTarg = currSet.key;
+			morphTarg = targSet.key;
 			blendVal = morphStep / (1 - oldMorphVal).max(morphStep);
 		} {
 			if (targSet.isNil) { ^this };
 			morphStep = morphStep.abs;
-			morphTarg = targSet.key;
+			morphTarg = currSet.key;
 			blendVal = morphStep / oldMorphVal.max(morphStep);
 		};
-		// "blendVal: % target: %\n".postf(blendVal, morphTarg);
+		"blendVal: % target: %\n".postf(blendVal, morphTarg);
 
 		this.morphTo(blendVal, morphTarg);
 		morphVal = newMorphVal;

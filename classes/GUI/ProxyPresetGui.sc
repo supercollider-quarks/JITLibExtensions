@@ -44,20 +44,26 @@ ProxyPresetGui : JITGui {
 		var butHeight = skin.headHeight;
 		var flow = zone.decorator;
 
-			// top line
+		// top line
 
 		StaticText(zone, Rect(0,0, 30, butHeight)).string_("curr")
 		.background_(skin.foreground)
-		.font_(font).align_(\center);
+		.font_(font).align_(\center)
+		.mouseDownAction = {
+			var name = setLPop.item.asSymbol;
+			"%: jump to %\n".postf(object.cs, name.cs);
+			// object.setCurr(name);
+			object.setProxy(name); 		// sets proxy too.
+			object.morphVal_(0);
+		};
 
 		setLPop = PopUpMenu(zone, Rect(0,0, 80, butHeight))
 		.items_([]).font_(font)
 		.background_(skin.foreground)
-		.action_({ |pop| var name;
-			name = pop.items[pop.value].asSymbol;
-			object.setProxy(name); 		// sets proxy too.
-			object.setCurr(name);
-			object.morphVal_(0);
+		.allowsReselection_(true)
+		.action_({ |pop|
+			object.morphVal = 0.5;
+			object.setCurr(pop.item.asSymbol, false);
 		});
 
 		storeBtn = Button(zone, Rect(0, 0, 32, butHeight))
@@ -99,20 +105,25 @@ ProxyPresetGui : JITGui {
 		setRPop = PopUpMenu(zone, Rect(0,0, 80, butHeight))
 		.items_([]).font_(font)
 		.background_(skin.foreground)
-		.action_({ |pop, mod = 0|
-			// mod.postln; not working
+		.allowsReselection_(true)
+		.action_({ |pop|
 			object.morphVal = 0.5;
-			object.setTarg(pop.items[pop.value].asSymbol, false);
-
+			object.setTarg(pop.item.asSymbol, false);
 		});
 
 		StaticText(zone, Rect(0,0, 30, butHeight))
 		.background_(skin.foreground)
-		.string_("targ").font_(font).align_(\center);
+		.string_("targ").font_(font).align_(\center)
+		.mouseDownAction = {
+			var name = setRPop.item.asSymbol;
+			"%: jump to %\n".postf(object.cs, name.cs);
+			object.setProxy(name); 		// sets proxy too.
+			object.morphVal_(1);
+		};
 
 		flow.nextLine;
 
-			// lower line
+		// lower line
 
 		setLBox = NumberBox(zone, Rect(0,0, 30, butHeight))
 		.background_(skin.foreground)
