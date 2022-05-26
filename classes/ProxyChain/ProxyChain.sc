@@ -67,16 +67,21 @@ ProxyChain {
 
 	*addSource { |srcName, source|
 		var dict = this.atSrcDict(srcName);
-		var srcFunc, paramNames;
+		var srcFunc, paramNames, isFilter = false;
 
 		if (source.notNil) {
 			// backwards compat - remove!
 			allSources.put(srcName, source);
 
 			dict.put(\source, source);
-			srcFunc = if (source.isKindOf(Association)) { source.value } { source };
+			srcFunc = if (source.isKindOf(Association)) {
+				isFilter = [\filter, \filterIn].includes(source.key);
+				source.value
+			} { source };
 			paramNames = srcFunc.argNames.as(Array);
-			paramNames.remove(\in);
+			///// was:
+			// paramNames.remove(\in);
+			if (isFilter) { paramNames = paramNames.drop(1) };
 			dict.put(\paramNames, paramNames);
 		}
 	}
