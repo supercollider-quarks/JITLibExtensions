@@ -99,8 +99,11 @@ ProxyPresetGui : JITGui {
 		setRPop = PopUpMenu(zone, Rect(0,0, 80, butHeight))
 		.items_([]).font_(font)
 		.background_(skin.foreground)
-		.action_({ |pop|
-			object.setTarg(pop.items[pop.value].asSymbol);
+		.action_({ |pop, mod = 0|
+			// mod.postln; not working
+			object.morphVal = 0.5;
+			object.setTarg(pop.items[pop.value].asSymbol, false);
+
 		});
 
 		StaticText(zone, Rect(0,0, 30, butHeight))
@@ -123,10 +126,7 @@ ProxyPresetGui : JITGui {
 
 		xfader = Slider(zone, Rect(0,0, 320, butHeight))
 		.action_({ |sl|
-			object.morph(sl.value,
-				object.currSet.key,
-				object.targSet.key
-			);
+			object.morphValStep(sl.value);
 		});
 
 		setRBox = NumberBox(zone, Rect(0,0, 30, butHeight))
