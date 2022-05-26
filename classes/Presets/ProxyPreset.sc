@@ -98,14 +98,17 @@ ProxyPreset {
 	initTask {
 
 		morphTask = TaskProxy({ |ev|
-			var numSteps;
+			var numSteps, baseStep, morphState;
 			ev[\dt] = ev[\dt] ? 0.01;
 			ev[\morphTime] = ev[\morphTime] ? 1;
-			this.prepMorph;
 
-			numSteps = ev[\morphTime] / ev[\dt];
+			numSteps = (ev[\morphTime] / ev[\dt]).round(1).max(1);
+			baseStep = 1 / numSteps;
+			morphState = 1.0;
+
 			numSteps.do { |i|
-				this.morph(1 + i / numSteps);
+				this.morphTo( baseStep / morphState.max(baseStep));
+				morphState = (morphState - baseStep).clip(0.0, 1.0);
 				ev[\dt].wait;
 			};
 			ev[\doneFunc].value;
@@ -347,6 +350,37 @@ ProxyPreset {
 	morph { |blend, name1, name2, mapped=true|
 		morphVal = blend;
 		proxy.set(*(this.blend(blend, name1, name2, mapped).flatten(1)));
+	}
+
+	morphTo { |blend, name, mapped=true|
+		this.currFromProxy;
+		name = name ? targSet.key;
+		proxy.set(*(this.blend(blend, \curr, name, mapped).flatten(1)));
+	}
+
+	// from a current morphVal to a different one
+	morphValStep { |inMorphVal|
+		var newMorphVal = inMorphVal.clip(0.0, 1.0);
+		var oldMorphVal = morphVal;
+		var morphStep = newMorphVal - oldMorphVal;
+		var morphTarg, blendVal, newSet;
+
+		if (morphStep == 0) { ^this };
+
+		if (morphStep > 0) {
+			if (currSet.isNil) { ^this };
+			morphTarg = currSet.key;
+			blendVal = morphStep / (1 - oldMorphVal).max(morphStep);
+		} {
+			if (targSet.isNil) { ^this };
+			morphStep = morphStep.abs;
+			morphTarg = targSet.key;
+			blendVal = morphStep / oldMorphVal.max(morphStep);
+		};
+		// "blendVal: % target: %\n".postf(blendVal, morphTarg);
+
+		this.morphTo(blendVal, morphTarg);
+		morphVal = newMorphVal;
 	}
 
 	xfadeTo { |target, dur, doneFunc|
