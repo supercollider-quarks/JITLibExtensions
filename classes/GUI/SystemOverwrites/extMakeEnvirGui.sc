@@ -55,6 +55,19 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 	}
 }
 
++ NodeProxy {
+	getSpec { |key, value|
+		var foundspec;
+
+		if (this.respondsTo(\findFirstSpecFor)) {
+			foundspec = this.findFirstSpecFor(key);
+			if (foundspec.notNil) { ^foundspec }
+		};
+
+		^super.getSpec(key, value)
+	}
+}
+
 + TaskProxyGui {
 
 	object_ { |obj|
@@ -88,8 +101,8 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 }
 
 + EnvirGui {
-	    // obj is an envir or nil
-	    // clear specs when object changes
+	// obj is an envir or nil
+	// clear specs when object changes
 	object_ { |obj|
 		if (this.accepts(obj)) {
 			object = obj;
@@ -308,7 +321,7 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 	paintWetParams { |editKeys|
 		editKeys.do { |key, i|
 			if (replaceKeys[key].notNil) {
-			//	key.postln;
+				//	key.postln;
 				paramViews[i].background_(Color.green);
 			} {
 				paramViews[i].background_(skin.background);
