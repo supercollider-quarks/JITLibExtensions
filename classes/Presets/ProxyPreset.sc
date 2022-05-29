@@ -375,7 +375,7 @@ ProxyPreset {
 			morphTarg = currSet.key;
 			blendVal = morphStep / oldMorphVal.max(morphStep);
 		};
-		"blendVal: % target: %\n".postf(blendVal, morphTarg);
+		// "blendVal: % target: %\n".postf(blendVal, morphTarg);
 
 		this.morphTo(blendVal, morphTarg);
 		morphVal = newMorphVal;
