@@ -36,7 +36,7 @@ ProxyChain {
 
 	classvar <allSources;
 	classvar <sourceDicts;
-	classvar <all;
+	classvar <all, <>blendSpec;
 
 	var <slotNames, <slotsInUse, <proxy, <sources;
 
@@ -47,6 +47,7 @@ ProxyChain {
 
 		Class.initClassTree(Halo);
 		this.addSpec;
+		blendSpec = [0, 1].asSpec;
 	}
 
 	// old style - not recommended: add list of sources
@@ -226,7 +227,8 @@ ProxyChain {
 			specialKey = (prefix ++ index).asSymbol;
 			prevVal = proxy.nodeMap.get(specialKey).value;
 			if (wet.isNil) { wet = prevVal ? 0 };
-			proxy.addSpec(specialKey, \amp.asSpec);
+			// should be handled by
+			proxy.addSpec(specialKey, blendSpec);
 			proxy.set(specialKey, wet);
 		};
 
