@@ -153,7 +153,7 @@ ProxyPresetGui : JITGui {
 		if (numItems > 0) {
 			flow.nextLine.shift(0, 8);
 			proxyGui = this.proxyGuiClass.new(nil, numItems,
-				zone, bounds: minSize - (0@52), makeSkip: false);
+				zone, bounds: minSize - (0@42), makeSkip: false);
 		};
 	}
 
