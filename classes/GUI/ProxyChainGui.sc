@@ -55,7 +55,7 @@ ProxyChainGui : JITGui {
 		);
 
 		butZone = CompositeView(zone, Rect(0,0, 110, bounds.height - (skin.margin.y * 2)));
-		butZone.addFlowLayout;
+		butZone.addFlowLayout(2@2, 1@0);
 		buttons = numItems.collect { Button.new(butZone, Rect(0,0, 100, skin.buttonHeight)).states_([["-"]]); };
 
 		this.setButtons(options.asArray);
