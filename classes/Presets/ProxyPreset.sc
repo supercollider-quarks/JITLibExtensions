@@ -1,15 +1,26 @@
 // proxy has an envir for parameters
 // typically numerical, may also be different.
-// if different, special handling needed.
-// ProxyPreset
+// if different, special handling is needed.
 
 ProxyPreset {
+
+	classvar <>settingsComment = "/*
+///// These are the settings for NdefPreset('pulselet'):
+///// you can edit the textfile, e.g. choosing better preset names,
+///// tuning parameter values, or deleting unwanted presets.
+///// When done, save the textfile where it is, and
+///// then load the edited settings again with:
+NdefPreset('pulselet').loadSettings;
+*/\n\n";
 
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
 	var <currSet, <targSet, <>addsToTop = false, <>morphVal = 0, <morphTask;
 
 	var <>storeToDisk = false, <>storePath;
 
+	*initClass {
+
+	}
 
 	*new { |proxy, namesToStore, settings, specs, morphFuncs|
 
@@ -262,11 +273,11 @@ ProxyPreset {
 	}
 
 	settingsString {
-		var comment = "///// % settings:\n".format(this);
+		var comment = settingsComment.format(this, this);
 		var setStr = settings.asCompileString
 		.replace("List[ (", "List[\n\t(")
 		.replace("), (", "), \n\t(")
-		.replace("]) ]", "]) \n]");
+		.replace("]) ]", "]) \n]\n");
 		^comment ++ setStr ++ "\n"
 	}
 
