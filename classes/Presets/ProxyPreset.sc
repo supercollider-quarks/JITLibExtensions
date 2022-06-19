@@ -175,6 +175,19 @@ ProxyPreset {
 		proxy.setUni(*newSettings.flatten(1));
 	}
 
+	// if index within settings range, take that preset,
+	// else make a new randSet with index as seed
+	setCurrIndex { |index, rand = 1.0|
+		var found = settings[index];
+		if (found.notNil) {
+			this.setCurr(found.key)
+			^found.key
+		} {
+			this.setRand(rand, seed: index);
+			^("rd." ++ index)
+		}
+	}
+
 	setCurr { |name|
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
