@@ -5,12 +5,12 @@
 ProxyPreset {
 
 	classvar <>settingsComment = "/*
-///// These are the settings for NdefPreset('pulselet'):
+///// These are the settings for %:
 ///// you can edit the textfile, e.g. choosing better preset names,
 ///// tuning parameter values, or deleting unwanted presets.
 ///// When done, save the textfile where it is, and
 ///// then load the edited settings again with:
-NdefPreset('pulselet').loadSettings;
+%.loadSettings;
 */\n\n";
 
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
