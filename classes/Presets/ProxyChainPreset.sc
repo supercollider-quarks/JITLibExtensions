@@ -84,21 +84,29 @@ ProxyChainPreset {
 		"%: preset % activates these slots: %\n".postf(this, setName, newSlotNames);
 
 		// add in all newSlotNames with their proper wet settings ...
-		newset.value.do { |assoc|
-			var keysVals = assoc.value;
-			chain.add(assoc.key, keysVals[0][1]);
-			chain.proxy.set(*keysVals.drop(1).flat);
-		};
+		fork {
+			try { proxy.server.sync };
+			newset.value.do { |assoc|
+				var keysVals = assoc.value;
+				chain.add(assoc.key, keysVals[0][1]);
+			};
+			try { proxy.server.sync };
+			newset.value.do { |assoc|
+				var keysVals = assoc.value;
+				chain.proxy.set(*keysVals.drop(1).flat);
+			};
+			try { proxy.server.sync };
 
-		// stop all other slotNames except protected ones:
-		if (absolute) {
-			slotNamesToRemove = chain.slotNames.array.copy;
-			slotNamesToRemove.removeAll(newSlotNames);
-			slotNamesToRemove.removeAll(exceptedSlots);
-			slotNamesToRemove.removeAll(except);
-			// "%: preset % stops slots: %\n".postf(this, setName, slotNamesToRemove);
-			slotNamesToRemove.do { |name| chain.remove(name) };
-			chain.proxy.cleanNodeMap;
+			// stop all other slotNames except protected ones:
+			if (absolute) {
+				slotNamesToRemove = chain.slotNames.array.copy;
+				slotNamesToRemove.removeAll(newSlotNames);
+				slotNamesToRemove.removeAll(exceptedSlots);
+				slotNamesToRemove.removeAll(except);
+				// "%: preset % stops slots: %\n".postf(this, setName, slotNamesToRemove);
+				slotNamesToRemove.do { |name| chain.remove(name) };
+				chain.proxy.cleanNodeMap;
+			};
 		};
 	}
 

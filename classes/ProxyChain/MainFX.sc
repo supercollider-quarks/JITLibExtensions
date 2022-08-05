@@ -11,9 +11,9 @@ MainFX {
 	*default { ^all[Server.default.name] }
 
 
-		// only one MainFX per server ATM.
-		// This could be changed if different MainFX
-		// for different groups of output channels are to be used.
+	// only one MainFX per server ATM.
+	// This could be changed if different MainFX
+	// for different groups of output channels are to be used.
 
 	*new { |server, numChannels, slotNames, busIndex|
 		var serverName, fx;
@@ -39,12 +39,13 @@ MainFX {
 			};
 			^fx
 		} {
+			// "MainFX - going into make".postln;
 			^this.make(server, numChannels, slotNames, busIndex ? 0)
 		}
 	}
 
-	*make { |server, numChannels, slotNames, busIndex|
-		^super.new.init(server, numChannels, slotNames, busIndex);
+	*make { |server, numChannels, slotNames|
+		^super.new.init2(server, numChannels, slotNames);
 	}
 
 	makeBus {
@@ -76,15 +77,6 @@ MainFX {
 
 	slotsInUse { ^proxyChain.slotsInUse }
 
-
-	// cmdPeriod {
-	// 	group.freeAll; 	// for SharedServers
-	// 	// evil just to wait? hmmm.
-	// 	server.sync;
-	// 	this.wakeUp;
-	// 	// defer({ this.wakeUp }, 0.2);
-	// }
-
 	// hide Ndef by default
 	hide {
 		Ndef.all[server.name].envir.removeAt(proxyChain.proxy.key);
@@ -94,13 +86,13 @@ MainFX {
 		Ndef.all[server.name].envir.put(proxyChain.proxy.key, proxyChain.proxy);
 	}
 
-	init { |inServer, inNumChannels, inSlotNames, inBusIndex|
+	init2 { |inServer, inNumChannels, inSlotNames, inBusIndex|
 		var proxy;
 		server = inServer ? Server.default;
 		numChannels = inNumChannels ? server.options.numOutputBusChannels;
 		busIndex = inBusIndex ? 0;
 
-		proxy = Ndef(\zz_mastafx -> server.name);
+		proxy = Ndef(\mainFX -> server.name);
 		proxy.ar(numChannels);
 		proxy.bus_(this.makeBus);
 		proxyChain = ProxyChain.from(proxy, inSlotNames ? []);
@@ -110,23 +102,22 @@ MainFX {
 		all.put(server.name, this);
 
 		this.makeGroup;
-		ServerTree.add({ this.wakeUp });
-		// CmdPeriod.add(this);
+		// "mainfx.init".postln;
+		ServerTree.add(this, server);
 
-		badDefName = ("BadMainFX_" ++ server.name).asSymbol;
-		SynthDef(badDefName, {
-			var snd = In.ar(busIndex, numChannels);
-			var dt = 0.001;
-			var isOK = (CheckBadValues.ar(snd) < 0.001);
-			var gate = (isOK * DelayN.ar(isOK, dt * 2));
-			var outSnd = 	DelayL.ar(snd, dt) * gate;
-			ReplaceOut.ar(busIndex, outSnd)
-		}).add;
+		checkingBadValues = \Safety.asClass.isNil;
 
-		fork {
-			0.2.wait;
-			this.checkBad(checkingBadValues);
-		};
+		if (checkingBadValues) {
+			badDefName = ("BadMainFX_" ++ server.name).asSymbol;
+			SynthDef(badDefName, {
+				var snd = In.ar(busIndex, numChannels);
+				var dt = 0.001;
+				var isOK = (CheckBadValues.ar(snd) < 0.001);
+				var gate = (isOK * DelayN.ar(isOK, dt * 2));
+				var outSnd = 	DelayL.ar(snd, dt) * gate;
+				ReplaceOut.ar(busIndex, outSnd)
+			}).add;
+		}
 	}
 
 	makeGroup {
@@ -134,19 +125,19 @@ MainFX {
 		proxyChain.proxy.parentGroup_(group);
 	}
 
+	doOnServerTree { this.wakeUp }
+
 	wakeUp {
-		"\nMainFX for server % waking up.\n\n".postf(server.name);
-		this.makeGroup;
-		server.sync;
-		0.1.wait;
-		proxyChain.proxy.wakeUp;
-		server.sync;
-		0.1.wait;
-		this.checkBad;
+		server.bind {
+			this.makeGroup;
+			proxyChain.proxy.rebuild;
+			if (checkingBadValues) { this.checkBad };
+			"\MainFX for % woke up.\n\n".postf(this, server.name);
+		};
 	}
 
 	clear {
-		CmdPeriod.remove(this);
+		ServerTree.remove(this, server);
 		proxyChain.proxy.clear;
 		all.removeAt(proxyChain.proxy.server.name);
 	}
@@ -171,9 +162,14 @@ MainFX {
 		.name_(name);
 	}
 
-	checkBad { |flag = true|
-		checkingBadValues = flag;
-		badSynth.free;
+	checkBad { |flag|
+		checkingBadValues = flag ? checkingBadValues;
+		badSynth !? {
+			// free badSynth - which may be gone already
+			// so suppress error msg for this bundle
+			server.sendBundle(nil, [\error, -1], ["/free", badSynth.nodeID]);
+		};
+
 		if (checkingBadValues) {
 			badSynth = Synth(badDefName, target: group, addAction: \addAfter);
 		};

@@ -35,7 +35,12 @@ ProxyMeter {
 		CmdPeriod.add(this);
 	}
 
-	*cmdPeriod { fork { 0.5.wait; all.do { |meter| meter.ampProxy.wakeUp } } }
+	*cmdPeriod {
+		fork({
+			0.5.wait;
+			all.do { |meter| meter.ampProxy.wakeUp }
+		}, AppClock)
+	}
 
 	*addNdefGui { |gui| this.addMonitorGui(gui.monitorGui); }
 	*removeNdefGui { |gui| this.removeMonitorGui(gui.monitorGui); }

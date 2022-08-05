@@ -1,15 +1,26 @@
 // proxy has an envir for parameters
 // typically numerical, may also be different.
-// if different, special handling needed.
-// ProxyPreset
+// if different, special handling is needed.
 
 ProxyPreset {
+
+	classvar <>settingsComment = "/*
+///// These are the settings for %:
+///// you can edit the textfile, e.g. choosing better preset names,
+///// tuning parameter values, or deleting unwanted presets.
+///// When done, save the textfile where it is, and
+///// then load the edited settings again with:
+%.loadSettings;
+*/\n\n";
 
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
 	var <currSet, <targSet, <>addsToTop = false, <>morphVal = 0, <morphTask;
 
 	var <>storeToDisk = false, <>storePath;
 
+	*initClass {
+
+	}
 
 	*new { |proxy, namesToStore, settings, specs, morphFuncs|
 
@@ -45,8 +56,8 @@ ProxyPreset {
 		};
 
 		if (missingSpecNames.notEmpty) {
-			"// % is missing specs for % parameters!\n"
-			"// Please supply them:\n".postf(this.cs, missingSpecNames.size);
+			"// % for % is missing specs for % parameters!\n"
+			"// Please supply them:\n".postf(this.class, proxy, missingSpecNames.size);
 			missingSpecNames.do { |specName|
 				"%.addSpec(%, [_min_,_max_,_warp_,_step_,_defaultval_]);\n".postf(proxy, specName.cs);
 			};
@@ -98,14 +109,17 @@ ProxyPreset {
 	initTask {
 
 		morphTask = TaskProxy({ |ev|
-			var numSteps;
+			var numSteps, baseStep, morphState;
 			ev[\dt] = ev[\dt] ? 0.01;
 			ev[\morphTime] = ev[\morphTime] ? 1;
-			this.prepMorph;
 
-			numSteps = ev[\morphTime] / ev[\dt];
+			numSteps = (ev[\morphTime] / ev[\dt]).round(1).max(1);
+			baseStep = 1 / numSteps;
+			morphState = 1.0;
+
 			numSteps.do { |i|
-				this.morph(1 + i / numSteps);
+				this.morphTo( baseStep / morphState.max(baseStep));
+				morphState = (morphState - baseStep).clip(0.0, 1.0);
 				ev[\dt].wait;
 			};
 			ev[\doneFunc].value;
@@ -169,15 +183,26 @@ ProxyPreset {
 
 	setRelFrom { |name, values|
 		var newSettings = this.getSetNorm(name) + values;
-		proxy.setUni(*newSettings.flat);
+		proxy.setUni(*newSettings.flatten(1));
+	}
+
+	// if index within settings range, take that preset,
+	// else make a new randSet with index as seed
+	setCurrIndex { |index, rand = 1.0|
+		var found = settings[index];
+		if (found.notNil) {
+			this.setCurr(found.key)
+			^found.key
+		} {
+			this.setRand(rand, seed: index);
+			^("rd." ++ index)
+		}
 	}
 
 	setCurr { |name|
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
 			currSet = foundSet;
-			proxy.set(*currSet.value.flat);
-			this.morphVal_(0);
 		};
 	}
 
@@ -225,7 +250,7 @@ ProxyPreset {
 		this.setTarg(settings.wrapAt(targIndex + incr).key);
 	}
 
-	setProxy { |name| proxy.set(*this.getSet(name).value.flat) }
+	setProxy { |name| proxy.set(*this.getSet(name).value.flatten(1)) }
 
 
 	// STORAGE to Disk:
@@ -248,11 +273,11 @@ ProxyPreset {
 	}
 
 	settingsString {
-		var comment = "///// % settings:\n".format(this);
+		var comment = settingsComment.format(this, this);
 		var setStr = settings.asCompileString
 		.replace("List[ (", "List[\n\t(")
 		.replace("), (", "), \n\t(")
-		.replace("]) ]", "]) \n]");
+		.replace("]) ]", "]) \n]\n");
 		^comment ++ setStr ++ "\n"
 	}
 
@@ -329,7 +354,7 @@ ProxyPreset {
 
 	setRand { |rand, startSet, except, seed|
 		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except, seed).flat);
+		proxy.set(*this.randSet(rand, startSet, except, seed).flatten(1));
 		this.prepMorph;
 	}
 
@@ -346,7 +371,38 @@ ProxyPreset {
 
 	morph { |blend, name1, name2, mapped=true|
 		morphVal = blend;
-		proxy.set(*(this.blend(blend, name1, name2, mapped).flat));
+		proxy.set(*(this.blend(blend, name1, name2, mapped).flatten(1)));
+	}
+
+	morphTo { |blend, name, mapped=true|
+		this.currFromProxy;
+		name = name ? targSet.key;
+		proxy.set(*(this.blend(blend, \curr, name, mapped).flatten(1)));
+	}
+
+	// from a current morphVal to a different one
+	morphValStep { |inMorphVal|
+		var newMorphVal = inMorphVal.clip(0.0, 1.0);
+		var oldMorphVal = morphVal;
+		var morphStep = newMorphVal - oldMorphVal;
+		var morphTarg, blendVal, newSet;
+
+		if (morphStep == 0) { ^this };
+
+		if (morphStep > 0) {
+			if (currSet.isNil) { ^this };
+			morphTarg = targSet.key;
+			blendVal = morphStep / (1 - oldMorphVal).max(morphStep);
+		} {
+			if (targSet.isNil) { ^this };
+			morphStep = morphStep.abs;
+			morphTarg = currSet.key;
+			blendVal = morphStep / oldMorphVal.max(morphStep);
+		};
+		// "blendVal: % target: %\n".postf(blendVal, morphTarg);
+
+		this.morphTo(blendVal, morphTarg);
+		morphVal = newMorphVal;
 	}
 
 	xfadeTo { |target, dur, doneFunc|

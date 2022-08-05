@@ -36,7 +36,7 @@ ProxyChain {
 
 	classvar <allSources;
 	classvar <sourceDicts;
-	classvar <all;
+	classvar <all, <>blendSpec;
 
 	var <slotNames, <slotsInUse, <proxy, <sources;
 
@@ -47,6 +47,7 @@ ProxyChain {
 
 		Class.initClassTree(Halo);
 		this.addSpec;
+		blendSpec = [0, 1].asSpec;
 	}
 
 	// old style - not recommended: add list of sources
@@ -67,16 +68,21 @@ ProxyChain {
 
 	*addSource { |srcName, source|
 		var dict = this.atSrcDict(srcName);
-		var srcFunc, paramNames;
+		var srcFunc, paramNames, isFilter = false;
 
 		if (source.notNil) {
 			// backwards compat - remove!
 			allSources.put(srcName, source);
 
 			dict.put(\source, source);
-			srcFunc = if (source.isKindOf(Association)) { source.value } { source };
+			srcFunc = if (source.isKindOf(Association)) {
+				isFilter = [\filter, \filterIn].includes(source.key);
+				source.value
+			} { source };
 			paramNames = srcFunc.argNames.as(Array);
-			paramNames.remove(\in);
+			///// was:
+			// paramNames.remove(\in);
+			if (isFilter) { paramNames = paramNames.drop(1) };
 			dict.put(\paramNames, paramNames);
 		}
 	}
@@ -221,7 +227,8 @@ ProxyChain {
 			specialKey = (prefix ++ index).asSymbol;
 			prevVal = proxy.nodeMap.get(specialKey).value;
 			if (wet.isNil) { wet = prevVal ? 0 };
-			proxy.addSpec(specialKey, \amp.asSpec);
+			// should be handled by
+			proxy.addSpec(specialKey, blendSpec);
 			proxy.set(specialKey, wet);
 		};
 

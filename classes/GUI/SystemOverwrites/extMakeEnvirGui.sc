@@ -1,5 +1,39 @@
+/* tests:
+Ndef('x').gui;
+Ndef('x')[5] = \mix -> { Dust2.ar };
+// -> should should show wet5 at 1, full level
+// true:
+\wet1.isFilterRole  // true
+\mix5.isFilterRole  // true
+\wet.isFilterRole    //false
+\mix5berta.isFilterRole // false
+\wet2234d.isFilterRole  // false
+*/
+
++ Symbol {
+	// support for nodeproxy filter roles
+	isFilterRole {
+		var str, splitIndex, head, tail;
+		str = this.asString;
+		splitIndex = str.detectIndex(_.isDecDigit);
+		if (splitIndex.isNil) { ^false };
+
+		head = str.keep(splitIndex);
+		// roles could be looked up somewhere
+		if ([ "wet", "mix" ].any (_ == head).not) { ^false };
+
+		tail = str.drop(splitIndex);
+		^tail.every(_.isDecDigit);
+	}
+}
+
 + Spec {
+
 	*guess { |key, value|
+
+		if (key.isFilterRole) { ^[0, 1].asSpec };
+
+		if (value.isKindOf(Array)) { value = value[0] };
 		if (value.isKindOf(SimpleNumber).not) { ^nil };
 
 		// label units as \guess so one can throw spec away later.
@@ -18,6 +52,19 @@
 		if (cKeys.notNil) { ^cKeys };
 		cKeys = if (envir.notNil) { envir.keys(Array).sort } { [] };
 		^cKeys;
+	}
+}
+
++ NodeProxy {
+	getSpec { |key, value|
+		var foundspec;
+
+		if (this.respondsTo(\findFirstSpecFor)) {
+			foundspec = this.findFirstSpecFor(key);
+			if (foundspec.notNil) { ^foundspec }
+		};
+
+		^super.getSpec(key, value)
 	}
 }
 
@@ -54,8 +101,8 @@
 }
 
 + EnvirGui {
-	    // obj is an envir or nil
-	    // clear specs when object changes
+	// obj is an envir or nil
+	// clear specs when object changes
 	object_ { |obj|
 		if (this.accepts(obj)) {
 			object = obj;
@@ -274,7 +321,7 @@
 	paintWetParams { |editKeys|
 		editKeys.do { |key, i|
 			if (replaceKeys[key].notNil) {
-			//	key.postln;
+				//	key.postln;
 				paramViews[i].background_(Color.green);
 			} {
 				paramViews[i].background_(skin.background);

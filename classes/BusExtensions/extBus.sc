@@ -110,7 +110,9 @@
 
 	// private
 	performAtControl { arg action, keys, levels=1.0, durs;
-		var ctlBus, bundle, id, setArgs, setBundle, ctlIndex, missing, startLevels, maxDur;		if(this.isPlaying) {
+		var ctlBus, bundle, id, setArgs, setBundle, ctlIndex, missing, startLevels, maxDur;
+
+		if(this.isPlaying) {
 
 			durs = durs ? this.fadeTime;
 			id = group.nodeID;
@@ -129,11 +131,19 @@
 			bundle = ["/n_map", id];
 
 			keys.do { arg key, i;
-				var val = nodeMap.settings[key];
+				var val = nodeMap[key];
+				// val = val ?? { this.getDefaultVal(key) };
 				val !? {
-					val = val.getValue;
-					val !? { startLevels[i] = val };
-					bundle = bundle.addAll([key, ctlIndex + i]);
+					///// only works when value is not a number or array of numbers:
+					if (val.asArray.every(_.isNumber)) {
+						// val = val.getValue;
+						val !? { startLevels[i] = val };
+						bundle = bundle.addAll([key, ctlIndex + i]);
+					} {
+						// otherwise, how to get the current value(s) of that control,
+						// and unmap the bus etc that is playing to it?
+						"% - cannot set please unmap % first!".postf(thisMethod, key.cs);
+					};
 				}
 			};
 
@@ -150,7 +160,7 @@
 			setArgs = [keys, levels].flop.flat;
 				// set the node map
 			nodeMap.set(*setArgs);
-				// finally set it to that vealue
+				// finally set it to that value
 			server.sendBundle(server.latency + maxDur,
 					 ["/n_map", id] ++ [keys, -1].flop.flat,
 					 ["/n_set", id] ++ setArgs
