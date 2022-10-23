@@ -179,8 +179,8 @@ ProxyMeter {
 	//	"ProxyMeter: added proxy % at key %.\n".postf(ampProxy, ampName);
 
 		space = ProxySpace.findSpace(arProxy);
-			// if desired, add to the arproxy's proxyspace
-		if (showingKrs) { this.showKr };
+			// if desired, add to the arproxy's proxyspace, else hide
+		if (showingKrs) { this.showKr } { this.hideKr };
 
 		all.put(ampName, this);
 	}
