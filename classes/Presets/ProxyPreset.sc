@@ -10,7 +10,7 @@ ProxyPreset {
 ///// tuning parameter values, or deleting unwanted presets.
 ///// When done, save the textfile where it is, and
 ///// then load the edited settings again with:
-%.loadSettings;
+%.loadSettings(clear: true);
 */\n\n";
 
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
