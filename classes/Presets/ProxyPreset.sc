@@ -307,6 +307,7 @@ ProxyPreset {
 	randSet { |rand=0.25, startSet, except, seed|
 
 		var randKeysVals, set, randRange, oldRandData;
+		var mappings;
 		// vary any given set too?
 		set = this.getSet(startSet).value ?? {
 			this.getFromProxy(except);
@@ -315,6 +316,10 @@ ProxyPreset {
 		if (except.notNil) {
 			set = set.reject { |pair| except.includes(pair[0]); };
 		};
+
+		mappings = proxy.nodeMap.mappingKeys;
+		set = set.reject { |pair| mappings.includes(pair[0]) };
+
 		{
 			randKeysVals = set.collect { |pair|
 				var key, val, normVal, randVal, spec;
