@@ -54,7 +54,7 @@ Halo : Library {
 		Halo.put(this, \spec, specs);
 		this.addDependant({ |who, what|
 			if (what == \clear) {
-				this.releaseDependants;
+				this.removeDependant(thisFunction);
 				this.clearHalo;
 			};
 		});
