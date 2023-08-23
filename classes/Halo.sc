@@ -42,6 +42,13 @@ Halo : Library {
 
 	checkSpec {
 		var specs = Halo.at(this, \spec);
+		var func = { |who, what|
+			if (what == \clear) {
+				this.removeDependant(func);
+				this.clearHalo;  // will drop the func reference too
+			};
+		};
+
 		if (specs.notNil) { ^specs };
 
 		specs = ();
@@ -52,12 +59,10 @@ Halo : Library {
 		};
 
 		Halo.put(this, \spec, specs);
-		this.addDependant({ |who, what|
-			if (what == \clear) {
-				this.removeDependant(thisFunction);
-				this.clearHalo;
-			};
-		});
+		if(Halo.at(this, \clearWatcher).isNil) {
+			Halo.put(this, \clearWatcher, func);
+			this.addDependant(func);
+		};
 		^specs
 	}
 
