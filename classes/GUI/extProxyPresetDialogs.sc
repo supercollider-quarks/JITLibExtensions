@@ -19,7 +19,7 @@
 		var w;
 		loc = loc ?? {400@300};
 		name = this.checkName(name);
-		w = Window("", Rect(loc.x, loc.y + 40, 150, 40), false);
+		w = Window("", Rect(loc.x, loc.y - 40, 150, 40), false);
 		StaticText(w, Rect(0,0,70,20)).align_(\center).string_("name set:");
 		TextField(w, Rect(70,0,70,20)).align_(\center)
 		.string_(name)
@@ -33,17 +33,15 @@
 
 	deleteDialog { |loc|
 		var win, names, ezlist;
-		var winOrigin, winSize = (150@200);
 
 		names = this.getSetNames;
 		names.remove(\curr);
 		loc = loc ?? { (100@400) };
-		winOrigin = loc - winSize;
 
-		win = Window("delete", Rect(winOrigin.x, winOrigin.y, 150,200)).front;
+		win = Window("delete", Rect(loc.x, loc.y - 240, 150, 200)).front;
 		win.addFlowLayout;
 		ezlist = EZListView(win, win.bounds.insetBy(4, 4),
-			"DELETE presets from\n%:"
+			"DELETE presets from\n%-"
 			"\nselect and type D:".format(this),
 			names, nil, labelHeight: 50);
 		ezlist.labelView.align_(\center);

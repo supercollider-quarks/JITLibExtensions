@@ -69,15 +69,19 @@ ProxyPresetGui : JITGui {
 		storeBtn = Button(zone, Rect(0, 0, 32, butHeight))
 		.states_([["sto", skin.fontColor, skin.foreground]])
 		.font_(font)
-		.action_({ object.storeDialog(loc:
-			(parent.bounds.left @ parent.bounds.top))
+		.action_({ |but|
+			object.storeDialog(loc:
+				setLPop.absoluteBounds.rightBottom.flipY
+			);
 		});
 
 		delBtn =  Button(zone, Rect(0,0, 32, butHeight))
 		.states_([["del", skin.fontColor, skin.foreground]])
 		.font_(font)
-		.action_({ object.deleteDialog(loc:
-			(parent.bounds.left - 100 @ parent.bounds.bottom))
+		.action_({ |but|
+			object.deleteDialog(loc:
+				setLPop.absoluteBounds.rightBottom.flipY
+			)
 		});
 
 		Button(zone, Rect(0,0, 32, butHeight))
