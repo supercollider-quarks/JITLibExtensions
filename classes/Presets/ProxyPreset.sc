@@ -10,7 +10,7 @@ ProxyPreset {
 ///// tuning parameter values, or deleting unwanted presets.
 ///// When done, save the textfile where it is, and
 ///// then load the edited settings again with:
-%.loadSettings;
+%.loadSettings(clear: true);
 */\n\n";
 
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
@@ -128,13 +128,14 @@ ProxyPreset {
 
 	addSet { |name, values, toDisk=false, toTop|
 		var index;
+		name = name ?? Date.getDate.stamp;
 		name = this.checkName(name);
 		index = this.getIndex(name);
 
 		values = values ?? { this.getFromProxy.copy };
 
 		// write settings before storage to backup
-		if (toDisk) {
+		if (storeToDisk or: toDisk) {
 			this.writeSettings(storePath.splitext.insert(1, "_BK.").join, true);
 		};
 
@@ -151,9 +152,14 @@ ProxyPreset {
 		if (toDisk) { this.writeSettings(overwrite: true); };
 	}
 
-	removeSet { |name|
+	removeSet { |name, toDisk=false|
 		var index = this.getIndex(name);
-		if (index.notNil, { settings.removeAt(index) });
+		if (index.notNil, {
+			settings.removeAt(index);
+			if (storeToDisk or: toDisk) {
+				this.writeSettings(overwrite: true)
+			}
+		});
 	}
 
 	addSettings { |list|
@@ -307,6 +313,7 @@ ProxyPreset {
 	randSet { |rand=0.25, startSet, except, seed|
 
 		var randKeysVals, set, randRange, oldRandData;
+		var mappings;
 		// vary any given set too?
 		set = this.getSet(startSet).value ?? {
 			this.getFromProxy(except);
@@ -315,6 +322,10 @@ ProxyPreset {
 		if (except.notNil) {
 			set = set.reject { |pair| except.includes(pair[0]); };
 		};
+
+		mappings = proxy.nodeMap.mappingKeys;
+		set = set.reject { |pair| mappings.includes(pair[0]) };
+
 		{
 			randKeysVals = set.collect { |pair|
 				var key, val, normVal, randVal, spec;
