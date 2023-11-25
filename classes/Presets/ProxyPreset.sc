@@ -128,13 +128,14 @@ ProxyPreset {
 
 	addSet { |name, values, toDisk=false, toTop|
 		var index;
+		name = name ?? Date.getDate.stamp;
 		name = this.checkName(name);
 		index = this.getIndex(name);
 
 		values = values ?? { this.getFromProxy.copy };
 
 		// write settings before storage to backup
-		if (toDisk) {
+		if (storeToDisk or: toDisk) {
 			this.writeSettings(storePath.splitext.insert(1, "_BK.").join, true);
 		};
 
@@ -151,9 +152,14 @@ ProxyPreset {
 		if (toDisk) { this.writeSettings(overwrite: true); };
 	}
 
-	removeSet { |name|
+	removeSet { |name, toDisk=false|
 		var index = this.getIndex(name);
-		if (index.notNil, { settings.removeAt(index) });
+		if (index.notNil, {
+			settings.removeAt(index);
+			if (storeToDisk or: toDisk) {
+				this.writeSettings(overwrite: true)
+			}
+		});
 	}
 
 	addSettings { |list|
