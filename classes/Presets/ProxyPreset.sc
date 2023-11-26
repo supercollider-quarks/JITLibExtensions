@@ -324,7 +324,9 @@ ProxyPreset {
 		};
 
 		mappings = proxy.nodeMap.mappingKeys;
-		set = set.reject { |pair| mappings.includes(pair[0]) };
+		if (mappings.notNil) {
+			set = set.reject { |pair| mappings.includes(pair[0]) };
+		};
 
 		{
 			randKeysVals = set.collect { |pair|
