@@ -9,7 +9,7 @@ ProxyMeter {
 	classvar <proxyGuis, <prePostViews;
 
 	var <ampName, <ampProxy, <arProxy, <space;
-	var <ampVals = #[0,0], <views, <resp;
+	var <ampVals, <views, <resp;
 
 	*initClass {
 
@@ -197,6 +197,7 @@ ProxyMeter {
 			var vols = msg.copyToEnd(3);
 			var preVol = vols[0];
 			var postVol = if (arProxy.monitor.isPlaying, arProxy.vol, 0) * preVol;
+			ampVals = [preVol, postVol];
 			defer {
 				views.do { |ppv| ppv.setAmps(preVol, postVol) };
 			}
