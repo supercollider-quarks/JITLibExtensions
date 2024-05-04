@@ -42,7 +42,10 @@ ProxyChainGui : JITGui {
 				but.states_([["[" + name + "]"], [name, Color.black, Color.green(5/7)], ]);
 				but.action_({ |but|
 					[
-						{ this.chain.remove(name) },
+						{
+							this.chain.remove(name);
+							this.chain.proxy.cleanNodeMap;
+						},
 						{ this.chain.add(name, defLevel.value) }
 					][but.value].value
 				});
