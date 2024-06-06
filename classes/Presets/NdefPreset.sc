@@ -59,11 +59,11 @@ NdefPreset : NodeProxyPreset {
 				res = super.new(proxy, namesToStore,
 					settings, specs, morphFuncs).prAdd(key);
 				res.currFromProxy;
-				// by default, store to disk, next to the
+				// by default, will store presets next to the
 				// code file from which the preset was loaded.
-				res.storeToDisk_(true).setPath;
+				res.setPath;
 			} {
-				"% - no preset or proxy found.\n".postf(this.proxyClass);
+				"% - no preset or proxy % found.\n".postf(this.proxyClass, key);
 			};
 		};
 		^res

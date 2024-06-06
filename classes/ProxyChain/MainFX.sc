@@ -128,12 +128,13 @@ MainFX {
 	doOnServerTree { this.wakeUp }
 
 	wakeUp {
-		server.bind {
+		fork {
 			this.makeGroup;
-			proxyChain.proxy.rebuild;
+			server.sync; // make sure new groups are in place before rebuild
+			proxyChain.proxy.rebuild.send;
 			if (checkingBadValues) { this.checkBad };
 			"\MainFX for % woke up.\n\n".postf(this, server.name);
-		};
+		}
 	}
 
 	clear {
