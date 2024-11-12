@@ -1,7 +1,6 @@
 + NodeProxy {
-	currentSettingsAsCompileString { | envir |
-		var nameStr, accessStr = "a";
-		var isAnon;
+	accessStr { | envir |
+		var accessStr = "a", nameStr, isAnon;
 
 		envir = envir ? currentEnvironment;
 
@@ -9,7 +8,11 @@
 		isAnon = nameStr.beginsWith("a = ");
 		if (isAnon.not) { accessStr = nameStr };
 
-		^this.nodeMap.asCode(accessStr, true);
-
+		^accessStr;
 	}
+
+	currentSettingsAsCompileString {
+		^this.nodeMap.asCode(this.accessStr, true);
+	}
+
 }
