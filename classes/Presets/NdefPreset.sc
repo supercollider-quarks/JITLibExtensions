@@ -47,14 +47,14 @@ NdefPreset : NodeProxyPreset {
 		if (key.isKindOf(this.proxyClass)) {
 			proxy = key;
 			key = proxy.key;
+		} {
+			// find proxy with same name in the default Server
+			proxy = this.proxyClass.dictFor(Server.default)[key];
 		};
 
 		res = all[key];
 
 		if (res.isNil) {
-			// find proxy with same name
-			proxy = this.proxyClass.dictFor(Server.default)[key];
-
 			if (proxy.notNil) {
 				res = super.new(proxy, namesToStore,
 					settings, specs, morphFuncs).prAdd(key);
