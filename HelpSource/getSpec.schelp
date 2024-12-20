@@ -1,0 +1,83 @@
+title:: getSpec
+
+summary:: Using NodeProxy getSpec, specs and addSpec
+categories:: Guides
+related:: Classes/NodeProxy, Classes/PatternProxy, Classes/Halo
+
+subsection:: Using NodeProxy getSpec, specs and addSpec
+
+PatternProxy (and thus TaskProxy, Pdef, and Tdef, and all other objects
+	that use .set methods for named parameters) have a single way
+of setting and accessing ranges for parameters, e.g. for GUIs:
+
+code::
+Tdef(\x).set(\myfreq, 345);
+Tdef(\x).addSpec(\myfreq, [30, 3000, \exp]);
+Tdef(\x).gui; // uses myfreq spec
+// specs are accessed with:
+Tdef(\x).getSpec(\myfreq);
+// or this gets a dict with all specs
+Tdef(\x).getSpec;
+// when you change the spec later to tune it,
+// the gui immediately uses it.
+Tdef(\x).addSpec(\myfreq, [50, 5000, \exp]);
+// specs are also used for setting params with unipolar values:
+Tdef(\x).setUni(\myfreq, 0.5); // center of range is 500
+::
+
+For historical reasons, NodeProxy (and Ndef) has two ways to define a spec for a given parameter name:
+
+code::
+// by implicit spec in the synth function(s), as in
+Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) })
+
+// and in the general JITLib way by addSpec (Halo).
+Ndef(\x).addSpec(\freqx, [3, 300, \exp])
+::
+
+As the specs for the same param name can be different in these two places, it is necessary to decide which one to use. In JITLibExtensions, code::addSpec / Halo:: gets priority over implicit specs; so if nothing is found in the code::Halo::, then we look in code::proxy.specs::.
+
+This precedence is useful for tuning specs while the sound continues:
+once a good spec is found, one can place it back in the synth func.
+If you always prefer to use implicit specs, just use implicit specs only,
+or at least avoid also using addSpec for the same parameter name.
+
+subsection:: Tests and Examples for using addSpec and implicit specs
+code::
+Ndef(\x).clear;
+Ndef(\x).getSpec; // empty Event
+Ndef(\x).getSpec(\freqx); // nil
+
+// define an implicit spec in synthfunc:
+Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) * 0.1 });
+// it should be here:
+Ndef(\x).specs;
+// findFirstSpecFor should find it too
+Ndef(\x).findFirstSpecFor(\freqx);
+// and getSpec finds it
+Ndef(\x).getSpec(\freqx);
+
+Ndef(\x).addSpec(\ampx, \amp);
+
+Ndef(\x).getSpec; // gets both synth specs and halo specs
+
+// use addSpec to set ranges: the newly added explicit spec is used
+Ndef(\x).addSpec(\freqx, [5, 500, \exp]);
+Ndef(\x).getSpec(\freqx);
+Ndef(\x).getSpec
+
+// when we remove the explicit spec again ..
+Ndef(\x).addSpec(\freqx, nil);
+// we see the implicit one again.
+Ndef(\x).getSpec(\freqx);
+
+// test that getSpec also works in NdefPreset:
+Ndef(\tst, { SinOsc.ar(\freqsin.kr(400, spec:\freq)) }).gui;
+
+NdefPreset(Ndef(\tst)).addSet(\set_1); // add a setting
+NdefPreset(Ndef(\tst)).setRand(1.0).addSet(\set_2); // and s second
+NdefPreset(Ndef(\tst)).morph(0.5, \set_1, \set_2); // morph
+::
+
+
+
