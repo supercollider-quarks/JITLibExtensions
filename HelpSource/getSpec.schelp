@@ -1,28 +1,36 @@
 title:: getSpec
 
-summary:: Using NodeProxy getSpec, specs and addSpec
+summary:: Using Specs for proxy parameters: getSpec, addSpec, and specs
 categories:: Guides
-related:: Classes/NodeProxy, Classes/PatternProxy, Classes/Halo
+related:: Classes/NodeProxy, Classes/PatternProxy, Classes/Halo, Classes/Object
 
-subsection:: Using NodeProxy getSpec, specs and addSpec
+section:: Using Specs for proxy parameters: getSpec, addSpec, and specs
 
-PatternProxy (and thus TaskProxy, Pdef, and Tdef, and all other objects
-	that use .set methods for named parameters) have a single way
-of setting and accessing ranges for parameters, e.g. for GUIs:
+JITLib proxies like PatternProxy (and thus TaskProxy, Pdef, and Tdef)
+and NodeProxy/Ndef and other objects have numerical settings, for which
+defining a Spec is useful: a practical mininum, maximum and curve (warp).
+
+getSpec and addSpec provide a general interface for proxies and
+all other objects that use .set methods for named parameters.
+This makes it easy to set and access ranges for parameters,
+e.g. for GUIs and other interfaces:
 
 code::
 Tdef(\x).set(\myfreq, 345);
 Tdef(\x).addSpec(\myfreq, [30, 3000, \exp]);
-Tdef(\x).gui; // uses myfreq spec
+Tdef(\x).gui; // gui uses myfreq spec automatically
 // specs are accessed with:
 Tdef(\x).getSpec(\myfreq);
-// or this gets a dict with all specs
+// or this gets a dict with all known specs
 Tdef(\x).getSpec;
-// when you change the spec later to tune it,
+// when you change a spec later to tune it,
 // the gui immediately uses it.
 Tdef(\x).addSpec(\myfreq, [50, 5000, \exp]);
 // specs are also used for setting params with unipolar values:
 Tdef(\x).setUni(\myfreq, 0.5); // center of range is 500
+Tdef(\x).getUni(\myfreq);
+// this guarantees that values stay within the range,
+// and is easy to use with controllers, e.g. hardware sliders.
 ::
 
 For historical reasons, NodeProxy (and Ndef) has two ways to define a spec for a given parameter name:
@@ -35,7 +43,7 @@ Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) })
 Ndef(\x).addSpec(\freqx, [3, 300, \exp])
 ::
 
-As the specs for the same param name can be different in these two places, it is necessary to decide which one to use. In JITLibExtensions, code::addSpec / Halo:: gets priority over implicit specs; so if nothing is found in the code::Halo::, then we look in code::proxy.specs::.
+As the specs for the same parameter name can be different in these two places, it is necessary to decide which one will be used. In JITLibExtensions, code::addSpec / Halo:: gets priority over implicit specs; so if nothing is found in the code::Halo::, then we look in code::proxy.specs::.
 
 This precedence is useful for tuning specs while the sound continues:
 once a good spec is found, one can place it back in the synth func.
@@ -78,6 +86,3 @@ NdefPreset(Ndef(\tst)).addSet(\set_1); // add a setting
 NdefPreset(Ndef(\tst)).setRand(1.0).addSet(\set_2); // and s second
 NdefPreset(Ndef(\tst)).morph(0.5, \set_1, \set_2); // morph
 ::
-
-
-
