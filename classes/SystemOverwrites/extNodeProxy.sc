@@ -36,7 +36,7 @@ or at least avoid also using addSpec for the same parameter name.
 			if (haloSpecs.notNil) {
 				synthSpecs.putAll(haloSpecs);
 			};
-			^synthSpecs
+			^synthSpecs.parent_(Spec.specs)
 		};
 
 		// always look in halo first:

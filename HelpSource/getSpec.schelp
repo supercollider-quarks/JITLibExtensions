@@ -80,9 +80,16 @@ Ndef(\x).addSpec(\freqx, nil);
 Ndef(\x).getSpec(\freqx);
 
 // test that getSpec also works in NdefPreset:
-Ndef(\tst, { SinOsc.ar(\freqsin.kr(400, spec:\freq)) }).gui;
+Ndef(\tst, { SinOsc.ar(\freqsin.kr(400, spec: \freq)) }).gui;
 
 NdefPreset(Ndef(\tst)).addSet(\set_1); // add a setting
 NdefPreset(Ndef(\tst)).setRand(1.0).addSet(\set_2); // and s second
 NdefPreset(Ndef(\tst)).morph(0.5, \set_1, \set_2); // morph
+
+// using a global spec implicitly:
+Ndef(\x, { Pulse.ar(\lofreq.kr(200)) * 0.1 });
+Ndef(\x).getSpec(\lofreq); // look by name
+// use getSpec to get all specs, then look
+Ndef(\x).getSpec.lofreq; //-> found in Spec.specs
+
 ::
