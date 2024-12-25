@@ -23,6 +23,14 @@ or at least avoid also using addSpec for the same parameter name.
 */
 
 + NodeProxy {
+	// convenience:
+	// copy implicit specs up into halo for faster access
+	addImplicitSpecsToHalo {
+		this.specs.keysValuesDo { |key, value|
+			this.addSpec(key, value)
+		}
+	}
+
 	getSpec { |key|
 
 		var foundSpec;
