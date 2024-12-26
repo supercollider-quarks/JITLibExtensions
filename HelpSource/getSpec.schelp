@@ -10,8 +10,8 @@ JITLib proxies like PatternProxy (and thus TaskProxy, Pdef, and Tdef)
 and NodeProxy/Ndef and other objects have numerical settings, for which
 defining a Spec is useful: a practical mininum, maximum and curve (warp).
 
-getSpec and addSpec provide a general interface for proxies and
-all other objects that use .set methods for named parameters.
+In the JITLibExtensions quark, addSpec and getSpec provide a general interface
+for proxies and all other objects that use .set methods for named parameters.
 This makes it easy to set and access ranges for parameters,
 e.g. for GUIs and other interfaces:
 
@@ -39,7 +39,7 @@ code::
 // by implicit spec in the synth function(s), as in
 Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) })
 
-// and in the general JITLib way by addSpec (Halo).
+// and using JITLibExtensions, explicitly by addSpec.
 Ndef(\x).addSpec(\freqx, [3, 300, \exp])
 ::
 

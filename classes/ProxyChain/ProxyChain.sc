@@ -39,7 +39,7 @@ ProxyChain {
 	classvar <all, <>blendSpec;
 
 	var <slotNames, <slotsInUse, <proxy, <sources;
-	var	<paramKeys, <wetIndices, <wetKeys, <slotNameDict;
+	var <paramKeys, <wetIndices, <wetKeys, <slotNameDict;
 	var <paramsPerSlot;
 
 	*initClass {
