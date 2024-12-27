@@ -39,6 +39,8 @@ ProxyChain {
 	classvar <all, <>blendSpec;
 
 	var <slotNames, <slotsInUse, <proxy, <sources;
+	var <paramKeys, <wetIndices, <wetKeys, <slotNameDict;
+	var <paramsPerSlot;
 
 	*initClass {
 		allSources = ();
@@ -181,6 +183,7 @@ ProxyChain {
 		proxy = argProxy;
 		if (proxy.key.notNil) { all.put(proxy.key, this) };
 
+		slotNameDict = ();
 		this.slotNames_(argSlotNames);
 
 		proxy.addSpec;
@@ -206,8 +209,11 @@ ProxyChain {
 
 	remove { |key|
 	 	var oldSlotIndex = slotsInUse.indexOf(key);
-		if (oldSlotIndex.notNil) { proxy[oldSlotIndex] = nil; };
-		slotsInUse.remove(key);
+		if (oldSlotIndex.notNil) {
+			proxy[oldSlotIndex] = nil;
+			slotsInUse.remove(key);
+			this.updateSlotInfo;
+		};
 	}
 
 	addSlot { |key, index, wet|
@@ -236,6 +242,7 @@ ProxyChain {
 			srcDict.specs.keysValuesDo { |param, spec| proxy.addSpec(param, spec) };
 		};
 		proxy[index] = func;
+		this.updateSlotInfo;
 	}
 
 	setSlots { |keys, levels=#[], update=false|
@@ -320,4 +327,19 @@ ProxyChain {
 			slotName -> this.keysValuesAt(slotName);
 		}
 	}
+
+	updateSlotInfo {
+		paramKeys = proxy.controlKeys;
+		wetIndices = paramKeys.selectIndices(_.isFilterRole);
+		wetKeys = paramKeys[wetIndices];
+		paramsPerSlot = paramKeys.separate { |a, b| b.isFilterRole };
+		this.activeSlotNames.do { |name, i|
+			slotNameDict.put(name, wetKeys[i])
+		}
+	}
+
+	wetKeyForSlotName { |slotName| ^slotNameDict[slotName] }
+
+	slotNameForWetKey { |wetKey| ^slotNameDict.findKeyForValue(wetKey) }
+
 }
