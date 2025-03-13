@@ -18,16 +18,18 @@ ProxySubmix : Ndef {
 
 	addMix { |proxy, sendLevel = 0.25, postVol = true, mono = false|
 
-		var index, item, sendName, volBus;
+		var objIndex, item, sendName, volBus;
 		this.checkInit(proxy);
 
-		if (collection.includes(proxy)) { ^this };
+		if (collection.any { |dict| dict[\proxy] === proxy }) {
+			"%: already has %\n".postf(this, proxy);
+			^this
+		};
 
-		index = collection.indexOf(nil) ?? { collection.size };
-		collection = collection.extend(max(collection.size, index + 1));
+		objIndex = collection.collect(_[\objIndex]).maxItem ? 0 + 1;
 		sendName = ("snd_" ++ proxy.key).asSymbol;
-		item = (proxy: proxy, name: sendName);
-		collection[index] = item;
+		item = (proxy: proxy, name: sendName, objIndex: objIndex);
+		collection = collection.add(item).postln;
 		this.addSpec(sendName, \amp);
 
 		if (postVol) {
@@ -36,7 +38,7 @@ ProxySubmix : Ndef {
 			item[\volBus] = volBus;
 		};
 
-		this.put(index + 1, {
+		this.put(objIndex, {
 			var source, levelCtl;
 			source = NumChannels.ar(proxy.ar,
 				if(mono) { 1 } { this.numChannels }
@@ -50,12 +52,12 @@ ProxySubmix : Ndef {
 		proxy.addDependant(this);
 	}
 	removeMix { |proxy|
-		var i = collection.detectIndex { |item| item[\proxy] === proxy };
-		if(i.notNil) {
-			collection[i][\proxy].removeDependant(this);
-			collection[i][\volBus].free;
-			collection[i] = nil;
-			this.put(i+1, nil);
+		var proxyDict = collection.detect { |item| item[\proxy] === proxy };
+		if(proxyDict.notNil) {
+			proxyDict[\proxy].removeDependant(this);
+			proxyDict[\volBus].free;
+			this.put(proxyDict.objIndex, nil);
+			collection.remove(proxyDict);
 		};
 	}
 
