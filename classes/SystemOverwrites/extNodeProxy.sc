@@ -33,13 +33,13 @@ or at least avoid also using addSpec for the same parameter name.
 
 	getSpec { |key|
 
-		var foundSpec;
+		var foundSpec, synthSpecs, haloSpecs;
 
 		// if no key given, return a dict with all specs;
 		// combining synth specs and prioritized Halo specs.
 		if (key.isNil) {
-			var synthSpecs = this.specs;
-			var haloSpecs = super.getSpec;
+			synthSpecs = this.specs;
+			haloSpecs = super.getSpec;
 			// Halo specs will override synth specs.
 			if (haloSpecs.notNil) {
 				synthSpecs.putAll(haloSpecs);
