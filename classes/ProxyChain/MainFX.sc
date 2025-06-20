@@ -40,12 +40,12 @@ MainFX {
 			^fx
 		} {
 			// "MainFX - going into make".postln;
-			^this.make(server, numChannels, slotNames, busIndex ? 0)
+			^this.make(server, numChannels, slotNames, busIndex)
 		}
 	}
 
-	*make { |server, numChannels, slotNames|
-		^super.new.init2(server, numChannels, slotNames);
+	*make { |server, numChannels, slotNames, busIndex = 0|
+		^super.new.init2(server, numChannels, slotNames, busIndex);
 	}
 
 	makeBus {
