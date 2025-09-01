@@ -34,23 +34,23 @@
 	}
 
 	toServer { arg target, defName, level, dur;
-			var bundle;
-			level = level.asArray;
-			dur = dur.asArray;
-			bundle = List.new;
-			numChannels.do { arg i;
-				this.gateBusToBundle(bundle, target, defName,
+		var bundle;
+		level = level.asArray;
+		dur = dur.asArray;
+		bundle = List.new;
+		numChannels.do { arg i;
+			this.gateBusToBundle(bundle, target, defName,
 				[\i_level, level.wrapAt(i), \i_dur, dur.wrapAt(i)], index+i);
-			};
-			server.listSendBundle(nil, bundle);
+		};
+		server.listSendBundle(nil, bundle);
 
 	}
 
 	gateBusToBundle { arg bundle, target, defName, args, index;
-			bundle.add([9, defName, -1, 0, target.asNodeID, \i_bus, index]++args);
-			if(rate === 'control', { // map \i_start to kr channel old value
-				bundle.add(["/n_map", -1, \i_start, index])
-			});
+		bundle.add([9, defName, -1, 0, target.asNodeID, \i_bus, index]++args);
+		if(rate === 'control', { // map \i_start to kr channel old value
+			bundle.add(["/n_map", -1, \i_start, index])
+		});
 	}
 
 
@@ -110,9 +110,7 @@
 
 	// private
 	performAtControl { arg action, keys, levels=1.0, durs;
-		var ctlBus, bundle, id, setArgs, setBundle, ctlIndex, missing, startLevels, maxDur;
-
-		if(this.isPlaying) {
+		var ctlBus, bundle, id, setArgs, setBundle, ctlIndex, missing, startLevels, maxDur;		if(this.isPlaying) {
 
 			durs = durs ? this.fadeTime;
 			id = group.nodeID;
@@ -132,38 +130,29 @@
 
 			keys.do { arg key, i;
 				var val = nodeMap[key];
-				// val = val ?? { this.getDefaultVal(key) };
 				val !? {
-					///// only works when value is not a number or array of numbers:
-					if (val.asArray.every(_.isNumber)) {
-						// val = val.getValue;
-						val !? { startLevels[i] = val };
-						bundle = bundle.addAll([key, ctlIndex + i]);
-					} {
-						// otherwise, how to get the current value(s) of that control,
-						// and unmap the bus etc that is playing to it?
-						"% - cannot set please unmap % first!".postf(thisMethod, key.cs);
-					};
+					if(val.nodeMapMapsToControl.not) { startLevels[i] = val };
+					bundle = bundle.addAll([key, ctlIndex + i]);
 				}
 			};
 
 			server.openBundle;
 
 
-				ctlBus.setn(startLevels);
-				server.sendBundle(nil, bundle);
-				ctlBus.perform(action, levels, durs);
+			ctlBus.setn(startLevels);
+			server.sendBundle(nil, bundle);
+			ctlBus.perform(action, levels, durs);
 
 
 			server.closeBundle(server.latency);
 
 			setArgs = [keys, levels].flop.flat;
-				// set the node map
+			// set the node map
 			nodeMap.set(*setArgs);
-				// finally set it to that value
+			// finally set it to that vealue
 			server.sendBundle(server.latency + maxDur,
-					 ["/n_map", id] ++ [keys, -1].flop.flat,
-					 ["/n_set", id] ++ setArgs
+				["/n_map", id] ++ [keys, -1].flop.flat,
+				["/n_set", id] ++ setArgs
 			);
 			fork { (server.latency + maxDur).wait; ctlBus.free; };
 
