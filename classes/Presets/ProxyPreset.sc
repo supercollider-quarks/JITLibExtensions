@@ -1,26 +1,15 @@
 // proxy has an envir for parameters
 // typically numerical, may also be different.
-// if different, special handling is needed.
+// if different, special handling needed.
+// ProxyPreset
 
 ProxyPreset {
 
-	classvar <>settingsComment = "/*
-///// These are the settings for %:
-///// you can edit the textfile, e.g. choosing better preset names,
-///// tuning parameter values, or deleting unwanted presets.
-///// When done, save the textfile where it is, and
-///// then load the edited settings again with:
-%.loadSettings(clear: true);
-*/\n\n";
-
 	var <proxy, <namesToStore, <settings, <specs, <>morphFuncs;
-	var <currSet, <targSet, <>addsToTop = false, <>morphVal = 0, <morphTask;
+	var <currSet, <targSet, count = 0, <>morphVal = 0, <morphTask;
 
 	var <>storeToDisk = false, <>storePath;
 
-	*initClass {
-
-	}
 
 	*new { |proxy, namesToStore, settings, specs, morphFuncs|
 
@@ -43,10 +32,6 @@ ProxyPreset {
 		this.setTarg(\curr);
 	}
 
-	checkName { |name|
-		^(name ?? { "set_" ++ (settings.size + 1) }).asSymbol
-	}
-
 	checkSpecsMissing { |autoFill = false, dialog = false|
 		// for all missing specs, ask user ...
 
@@ -56,11 +41,8 @@ ProxyPreset {
 		};
 
 		if (missingSpecNames.notEmpty) {
-			"// % for % is missing specs for % parameters!\n"
-			"// Please supply them:\n".postf(this.class, proxy, missingSpecNames.size);
-			missingSpecNames.do { |specName|
-				"%.addSpec(%, [_min_,_max_,_warp_,_step_,_defaultval_]);\n".postf(proxy, specName.cs);
-			};
+			"please supply specs or special funcs for these param names:".postln;
+			missingSpecNames.postln;
 			if (dialog) { this.specsDialog(missingSpecNames) };
 		};
 	}
@@ -109,57 +91,46 @@ ProxyPreset {
 	initTask {
 
 		morphTask = TaskProxy({ |ev|
-			var numSteps, baseStep, morphState;
+			var numSteps;
 			ev[\dt] = ev[\dt] ? 0.01;
 			ev[\morphTime] = ev[\morphTime] ? 1;
+			this.prepMorph;
 
-			numSteps = (ev[\morphTime] / ev[\dt]).round(1).max(1);
-			baseStep = 1 / numSteps;
-			morphState = 1.0;
-
+			numSteps = ev[\morphTime] / ev[\dt];
 			numSteps.do { |i|
-				this.morphTo( baseStep / morphState.max(baseStep));
-				morphState = (morphState - baseStep).clip(0.0, 1.0);
+				this.morph(1 + i / numSteps);
 				ev[\dt].wait;
 			};
 			ev[\doneFunc].value;
 		});
 	}
 
-	addSet { |name, values, toDisk=false, toTop|
+	addSet { |name, values, toDisk=false|
 		var index;
-		name = name ?? Date.getDate.stamp;
-		name = this.checkName(name);
+		if (name.isNil, { count = count + 1; name = "set" ++ count; });
+		name = name.asSymbol;
 		index = this.getIndex(name);
 
+		// - NDEF-specific! abstract out later //
 		values = values ?? { this.getFromProxy.copy };
 
-		// write settings before storage to backup
-		if (storeToDisk or: toDisk) {
+		// writeBackup
+		if (toDisk) {
 			this.writeSettings(storePath.splitext.insert(1, "_BK.").join, true);
 		};
 
 		if (index.notNil) {
 			settings.put(index, name -> values)
 		} {
-			if (toTop ? addsToTop) {
-				settings.insert(1, name -> values)
-			} {
-				settings.add(name -> values)
-			};
+			settings.add(name -> values);
 		};
 		// friendlier with auto-backup...
 		if (toDisk) { this.writeSettings(overwrite: true); };
 	}
 
-	removeSet { |name, toDisk=false|
+	removeSet { |name|
 		var index = this.getIndex(name);
-		if (index.notNil, {
-			settings.removeAt(index);
-			if (storeToDisk or: toDisk) {
-				this.writeSettings(overwrite: true)
-			}
-		});
+		if (index.notNil, { settings.removeAt(index) });
 	}
 
 	addSettings { |list|
@@ -189,26 +160,15 @@ ProxyPreset {
 
 	setRelFrom { |name, values|
 		var newSettings = this.getSetNorm(name) + values;
-		proxy.setUni(*newSettings.flatten(1));
-	}
-
-	// if index within settings range, take that preset,
-	// else make a new randSet with index as seed
-	setCurrIndex { |index, rand = 1.0|
-		var found = settings[index];
-		if (found.notNil) {
-			this.setCurr(found.key)
-			^found.key
-		} {
-			this.setRand(rand, seed: index);
-			^("rd." ++ index)
-		}
+		proxy.setUni(*newSettings.flat);
 	}
 
 	setCurr { |name|
 		var foundSet = this.getSet(name);
 		if (foundSet.notNil) {
 			currSet = foundSet;
+			proxy.set(*currSet.value.flat);
+			this.morphVal_(0);
 		};
 	}
 
@@ -256,7 +216,7 @@ ProxyPreset {
 		this.setTarg(settings.wrapAt(targIndex + incr).key);
 	}
 
-	setProxy { |name| proxy.set(*this.getSet(name).value.flatten(1)) }
+	setProxy { |name| proxy.set(*this.getSet(name).value.flat) }
 
 
 	// STORAGE to Disk:
@@ -279,12 +239,12 @@ ProxyPreset {
 	}
 
 	settingsString {
-		var comment = settingsComment.format(this, this);
+		var comment = "///// % settings:\n".format(this);
 		var setStr = settings.asCompileString
 		.replace("List[ (", "List[\n\t(")
 		.replace("), (", "), \n\t(")
-		.replace("]) ]", "]) \n]\n");
-		^comment ++ setStr ++ "\n"
+		.replace("]) ]", "]) \n]");
+		^comment ++ setStr
 	}
 
 	writeSettings { |path, overwrite=false|
@@ -308,12 +268,14 @@ ProxyPreset {
 		file.close;
 	}
 
+
 	// randomize settings:
 
 	randSet { |rand=0.25, startSet, except, seed|
 
 		var randKeysVals, set, randRange, oldRandData;
 		var mappings;
+
 		// vary any given set too?
 		set = this.getSet(startSet).value ?? {
 			this.getFromProxy(except);
@@ -323,10 +285,9 @@ ProxyPreset {
 			set = set.reject { |pair| except.includes(pair[0]); };
 		};
 
+		// we can't randomize mapped controls
 		mappings = proxy.nodeMap.mappingKeys;
-		if (mappings.notNil) {
-			set = set.reject { |pair| mappings.includes(pair[0]) };
-		};
+		set = set.reject { |pair| mappings.includes(pair[0]) };
 
 		{
 			randKeysVals = set.collect { |pair|
@@ -342,7 +303,6 @@ ProxyPreset {
 					[key, spec.map(randVal)];
 				} {
 					"no spec: %\n".postf([key, val]);
-					[]
 				};
 			};
 		}.valueSeed(seed);
@@ -359,7 +319,7 @@ ProxyPreset {
 
 		{
 			namesToDrop = keys.scramble.drop(keys.size - numToKeep);
-			this.setRand(rand, except: namesToDrop, seed: seed);
+			this.setRand(rand, except: namesToDrop.postln, seed: seed);
 
 		}.valueSeed(seed);
 
@@ -367,7 +327,7 @@ ProxyPreset {
 
 	setRand { |rand, startSet, except, seed|
 		rand = rand ?? { exprand(0.001, 0.25) };
-		proxy.set(*this.randSet(rand, startSet, except, seed).flatten(1));
+		proxy.set(*this.randSet(rand, startSet, except, seed).flat);
 		this.prepMorph;
 	}
 
@@ -384,38 +344,7 @@ ProxyPreset {
 
 	morph { |blend, name1, name2, mapped=true|
 		morphVal = blend;
-		proxy.set(*(this.blend(blend, name1, name2, mapped).flatten(1)));
-	}
-
-	morphTo { |blend, name, mapped=true|
-		this.currFromProxy;
-		name = name ? targSet.key;
-		proxy.set(*(this.blend(blend, \curr, name, mapped).flatten(1)));
-	}
-
-	// from a current morphVal to a different one
-	morphValStep { |inMorphVal|
-		var newMorphVal = inMorphVal.clip(0.0, 1.0);
-		var oldMorphVal = morphVal;
-		var morphStep = newMorphVal - oldMorphVal;
-		var morphTarg, blendVal, newSet;
-
-		if (morphStep == 0) { ^this };
-
-		if (morphStep > 0) {
-			if (currSet.isNil) { ^this };
-			morphTarg = targSet.key;
-			blendVal = morphStep / (1 - oldMorphVal).max(morphStep);
-		} {
-			if (targSet.isNil) { ^this };
-			morphStep = morphStep.abs;
-			morphTarg = currSet.key;
-			blendVal = morphStep / oldMorphVal.max(morphStep);
-		};
-		// "blendVal: % target: %\n".postf(blendVal, morphTarg);
-
-		this.morphTo(blendVal, morphTarg);
-		morphVal = newMorphVal;
+		proxy.set(*(this.blend(blend, name1, name2, mapped).flat));
 	}
 
 	xfadeTo { |target, dur, doneFunc|
