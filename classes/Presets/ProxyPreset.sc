@@ -323,9 +323,13 @@ ProxyPreset {
 			set = set.reject { |pair| except.includes(pair[0]); };
 		};
 
-		mappings = proxy.nodeMap.mappingKeys;
-		if (mappings.notNil) {
-			set = set.reject { |pair| mappings.includes(pair[0]) };
+		// for nodeproxies, do not randSet controls mapped
+		// to sources like buses or other ndefs:
+		if (proxy.respondsTo(\nodeMap)) {
+			mappings = proxy.nodeMap.mappingKeys;
+			if (mappings.notNil) {
+				set = set.reject { |pair| mappings.includes(pair[0]) };
+			}
 		};
 
 		{
