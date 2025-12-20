@@ -159,12 +159,6 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 			scroller.visible_(false);
 		};
 
-		if (newKeys == prevState[\editKeys]) {
-			this.setByKeys(newKeys);
-		} {
-			this.setByKeys(newKeys);
-			if (newState[\overflow] == 0) { this.clearFields(newKeys.size) };
-		};
 
 		// need to update slider/paramview specs:
 		if (newState[\specsToUse] != prevState[\specsToUse]) {
@@ -179,6 +173,13 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 					[newKeys, newState[\specsToUse]].flop
 				);
 			};
+		};
+
+		if (newKeys == prevState[\editKeys]) {
+			this.setByKeys(newKeys);
+		} {
+			this.setByKeys(newKeys);
+			if (newState[\overflow] == 0) { this.clearFields(newKeys.size) };
 		};
 
 		prevState = newState;
@@ -237,14 +238,6 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 			scroller.visible_(false);
 		};
 
-		if (newKeys == prevState[\editKeys]) {
-			this.setByKeys(newKeys, newState[\settings]);
-		} {
-			this.setByKeys(newKeys, newState[\settings]);
-			this.clearFields(newKeys.size);
-			this.paintWetParams(newKeys);
-		};
-
 		if (newState[\specsToUse] != prevState[\specsToUse]) {
 			if (this.respondsTo(\widgets)) {
 				// pre 3.8 compatibility:
@@ -255,6 +248,14 @@ Ndef('x')[5] = \mix -> { Dust2.ar };
 					[newKeys, newState[\specsToUse]].flop
 				);
 			};
+		};
+
+		if (newKeys == prevState[\editKeys]) {
+			this.setByKeys(newKeys, newState[\settings]);
+		} {
+			this.setByKeys(newKeys, newState[\settings]);
+			this.clearFields(newKeys.size);
+			this.paintWetParams(newKeys);
 		};
 
 		prevState = newState;
