@@ -1,6 +1,7 @@
 
 PrePostView {
 	classvar <>preCol, <>postCol, <>preSatCol, <>satCol;
+	classvar <>swapXYFunc;
 	var <uv, <preAmp = 0, <postAmp = 0;
 
 	*initClass {
@@ -8,6 +9,11 @@ PrePostView {
 		postCol = Color.green(0.7, 0.4);
 		preSatCol = Color.red(1, 0.4);
 		satCol = Color.red(1, 0.6);
+
+		swapXYFunc = { |bounds, rect|
+			var newtop = bounds.height - rect.left;
+			Rect(rect.top, newtop, rect.height, rect.width.neg);
+		};
 	}
 
 	*new { |parent, bounds|
@@ -22,6 +28,7 @@ PrePostView {
 	}
 
 	init { |parent, bounds|
+
 		uv = UserView(parent, bounds);
 		uv.background_(Color(1,1,1,0));
 		uv.acceptsMouse_(false);
@@ -31,28 +38,41 @@ PrePostView {
 			var bounds = uv.bounds;
 			var maxwid = bounds.width - 4;
 			var height = bounds.height - 4;
-			var satPreLeft, satLeft;
+			var satPreLeft, satLeft, nextRect;
 
-			if (preAmp > 0) {
-				Pen.color_(preCol);
-				Pen.addRect(Rect(2,2, preAmp * maxwid, height));
+			var isVertical = swapXYFunc.notNil
+			and: { bounds.height > bounds.width };
+
+			Pen.color_(preCol);
+			nextRect = Rect(2,2, preAmp * maxwid, height);
+			if (isVertical) { nextRect = swapXYFunc.(bounds, nextRect) };
+			Pen.addRect(nextRect);
+			Pen.fill;
+
+
+
+			if (preAmp > 1.0) {
+				Pen.color_(preSatCol);
+				satPreLeft = (1 - (preAmp - 1).clip(0, 1)) * maxwid;
+				nextRect = Rect( satPreLeft, 2, maxwid, height);
+				if (isVertical) { nextRect = swapXYFunc.(bounds, nextRect) };
+				Pen.addRect(nextRect);
 				Pen.fill;
-				if (preAmp > 1.0) {
-					Pen.color_(preSatCol);
-					satPreLeft = (1 - (preAmp - 1).clip(0, 1)) * maxwid;
-					Pen.addRect(Rect( satPreLeft, 2, maxwid, height));
-					Pen.fill;
-				};
 			};
 
 			if (postAmp > 0) {
 				Pen.color_(postCol);
-				Pen.addRect(Rect(2,2, postAmp * maxwid, height));
+				nextRect = Rect(2,2, postAmp * maxwid, height);
+				if (isVertical) { nextRect = swapXYFunc.(bounds, nextRect) };
+				Pen.addRect(nextRect);
 				Pen.fill;
+
 				if (postAmp > 1.0) {
 					Pen.color_(satCol);
 					satLeft = (1 - (postAmp - 1).clip(0, 1)) * maxwid;
-					Pen.addRect(Rect( satLeft, 2, maxwid, height));
+					nextRect = Rect( satLeft, 2, maxwid, height);
+					if (isVertical) { nextRect = swapXYFunc.(bounds, nextRect) };
+					Pen.addRect(nextRect);
 					Pen.fill;
 				};
 			};
