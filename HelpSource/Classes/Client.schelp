@@ -1,0 +1,56 @@
+
+TITLE:: Client
+summary:: represents a remote sclang application
+categories:: Networking
+related:: Classes/LocalClient, Guides/Glossary
+
+DESCRIPTION::
+Client and LocalClient together represent a sender / receiver pair for sclang side OSC messages.
+Using SynthDef-like global function definitions, ClientFunc, an sclang application
+can evaluate code on a remote sclang app.
+
+For examples, see link::Classes/LocalClient::.
+
+
+CLASSMETHODS::
+
+private:: initClass
+
+METHOD:: named
+dictionary of all named instances of Client
+
+METHOD:: new
+returns a new instance and stores it in global dictionary all.
+the port is set to defaultPort, which is hardcoded presently.
+if no address is passed in, localhost is used.
+
+INSTANCEMETHODS::
+
+METHOD:: send
+evaluates a client function that is stored at that key
+
+METHOD:: password
+get and set password for interpreter access
+
+METHOD:: cmdName
+		set the cmdName under which the client sends (default: '/client')
+		this cmdName must be the same as the LocalClient receiver cmdName.
+
+METHOD:: interpret
+		if the remote client has the same password, it interprets  the string
+
+METHOD:: verbose
+get set flag whether to post info
+
+METHOD:: defaultAddr, defaultPort
+the default (local) address and port to use
+
+METHOD:: name
+the client's name (a Symbol)
+
+METHOD:: addr
+argument:: address
+the client's NetAddress
+
+private:: prepareSendBundle, sendBundle, recv, interpret
+private:: minit, remove, add, sendTo

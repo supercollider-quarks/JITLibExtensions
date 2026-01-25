@@ -1,0 +1,50 @@
+TITLE:: LocalClient
+summary:: represents a listener to a remote sclang application
+categories:: Networking
+related:: Classes/Client, Classes/ClientFunc, Overviews/JITLibExtensions
+
+DESCRIPTION::
+Note:: Passing a nil address to LocalClient will make it respond to any remote client
+and try to match any message that is sent from a client object.
+If it is expected to listen to a specific remote client, the address of that client should be used.::
+
+CLASSMETHODS::
+
+private:: default, initClass
+
+METHOD:: named
+access all named instances
+
+METHOD:: stop
+stop all instances
+
+
+INSTANCEMETHODS::
+
+METHOD:: start
+start listening to the world
+
+METHOD:: stop
+stop listening to the world
+
+METHOD:: reply
+reply to a sender with a message
+
+METHOD:: remove
+remove from client list
+
+METHOD:: disallow
+
+METHOD:: isListening
+return whether localclient is listening to the world
+
+METHOD:: password
+set the password for interpreter access from outside
+
+METHOD:: allowInterpret
+open the interpreter to the world (potential hacking danger)
+
+METHOD:: disallow
+close the interpreter access
+
+private:: minit, replyAddr, defaultAddr, resp, add

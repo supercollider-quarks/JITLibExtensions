@@ -1,0 +1,110 @@
+TITLE:: ClientFunc
+summary:: represents a client side stored function
+categories:: Networking
+related:: Classes/Client, Classes/LocalClient, Overviews/JITLibExtensions
+
+similar to SynthDef - represents a client side stored function.
+
+CLASSMETHODS::
+
+private:: initClass
+METHOD:: all
+access currently stored client funcs
+
+METHOD:: new
+create new clientfunc and store in .all
+
+METHOD:: at
+access client func at key
+
+METHOD:: removeAt
+remove client func at key
+
+METHOD:: clear
+clear global ClientFunc.all dictionary
+
+INSTANCEMETHODS::
+
+private:: toLib, name, func
+
+METHOD:: value
+argument:: args
+
+
+EXAMPLES::
+
+code::
+// instantiate a remote-local pair (in this case both are local of course)
+a = LocalClient.default; // this one listens to any remote client and evaluates the functions.
+b = Client.new;// this one sends the messages
+
+// eqivalent to the above defaults:
+a = LocalClient(\default, nil); //addr is nil : listen to all
+b = Client(\default, NetAddr("127.0.0.1", 57120));
+
+// store some client functions to be accessible from outside (analogous to SynthDef)
+ClientFunc(\ok, { arg ... args; args.postln });
+ClientFunc(\yes, { arg ... args; \ok2.postln });
+
+// start the local client
+a.start;
+
+// send messages
+b.send(\ok, "rrere", 39);
+b.send(\ok, "rrxxxre");
+b.send(\ok, 2, 3, 4, 5, 6);
+b.send(\yes, "rrere", 39);
+b.send(\yes);
+::
+
+Opening remote interpreter access is risky, because
+anyone can access the interpreter (also unix commands)
+if you do not set the password, this is not possible.
+code::
+// open interpreter
+a.password = \xyz;
+b.password = \xyz;
+a.allowInterpret;
+
+// remote interpret
+b.interpret(" Array.fill(8, { [1,0].choose }).postln ");
+b.interpret(" String.fill(80, { [$u, $n].choose }).postln");
+
+// remote GUI
+b.interpret(" GUI.window.new(\"aLl uR mAchIneZ are bEloNg to us!\").front;{ SinOsc.ar(500, 0, LFPulse.kr(4)) }.play;");
+
+// close interpret
+a.disallow
+
+//test: this should not interpret
+b.interpret(" String.fill(8, { [$u, $n].choose }).postln");
+
+a.stop; //stop local responder
+::
+
+Writing a chat:
+
+code::
+(
+// hit tab for sending
+var n, d, e, b;
+n = "John";
+d = Document("chat");
+e = Document("chat-write");
+
+a = LocalClient.default.start;
+b = Client.new;
+ClientFunc(\chat, { arg str; { d.string =  d.string ++ str ++ "\n" }.defer });
+
+e.keyDownAction_({ arg doc, char;
+	var string;
+if(char === Char.tab)
+{
+		"sending".postln;
+string = n + ":" + e.currentLine;
+b.send(\chat, string.copy);
+AppClock.sched(0.1, { e.string = "" }); // time is the original crime. remove the tab.
+}
+});
+e.onClose_({ AppClock.sched(0.1, { a.remove; d.close; nil }) }); // sched, otherwise sc crashes
+)::
