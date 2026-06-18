@@ -77,8 +77,8 @@ Halo : Library {
 			}
 		};
 	}
-
-	getSpec { |name|
+	// halo lookup only
+	getSpecFromHalo { |name|
 		var spec;
 		var specs = Halo.at(this, \spec);
 		if (name.isNil) { ^specs };
@@ -87,6 +87,11 @@ Halo : Library {
 			name = this.key;
 			if (specs.notNil) { spec = specs.at(name) };
 		};
+		^spec
+	}
+	// for all objects, do global lookup
+	getSpec { |name|
+		var spec = this.getSpecFromHalo;
 		^spec ?? { name.asSpec }
 	}
 
