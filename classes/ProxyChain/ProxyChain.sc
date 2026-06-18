@@ -96,12 +96,13 @@ ProxyChain {
 
 	*addSpecs { |srcName, specs, srcDict|
 		var dict = this.atSrcDict(srcName);
-		var specDict;
+		var specDict = dict[\specs] ?? { () };
+		dict.put(\specs, specDict);
+		// first, get implicit specs from func,
+		// and put them in specDict;
 
+		// then add explicit specs and convert them
 		if (specs.notNil) {
-			specDict = dict[\specs] ?? { () };
-			dict.put(\specs, specDict);
-
 			specs.keysValuesDo { |parkey, spec|
 				var newspec;
 				if (spec.isKindOf(Array)) { newspec = spec.asSpec };
