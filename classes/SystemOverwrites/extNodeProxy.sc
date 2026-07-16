@@ -7,7 +7,12 @@ implicitly in the synth function(s), as in
 
 Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) });
 
-// and the general JITLib way of using addSpec (Halo).
+// which one can access with
+
+Ndef(\x).specs;
+Ndef(\x).specs[\freqx];
+
+// and the general JITLib way of using addSpec (via Halo).
 Ndef(\x).addSpec(\freqx, [3, 300, \exp])
 
 As the specs for the same param name can be different in these two places,
@@ -18,20 +23,22 @@ if nothing in implicit specs, we look in Spec.specs.
 
 
 // Test precedence:
-
+(
 Spec.add(\testx, [0, 1]);
 // returns global
-Ndef(\testx).getSpec(\testx);
+Ndef(\testx).getSpec(\testx) == Spec.specs[\testx];
+)
 
 // implicit overrides global
 Ndef(\testx, { \testx.kr(0.5, spec: [0, 2]) });
 Ndef(\testx).specs
 // gets intrinsic
-Ndef(\testx).getSpec(\testx);
+Ndef(\testx).getSpec(\testx) == Ndef(\testx).specs[\testx];
 
 // addSpec/Halo overrides implicit:
 Ndef(\testx).addSpec(\testx, [0, 4]);
-Ndef(\testx).getSpec(\testx);
+Ndef(\testx).getSpec(\testx) == Spec.specs[\testx]; // false
+Ndef(\testx).getSpec(\testx) == Ndef(\testx).getHalo[\spec][\testx];
 
 This precedence is useful for tuning specs while the sound continues:
 once a good spec is found, one can place it back in the synth func.
@@ -57,25 +64,35 @@ or at least avoid also using addSpec for the same parameter name.
 		// if no key given, return a dict with all specs;
 		// combining synth specs and prioritized Halo specs.
 		if (key.isNil) {
+			// "getSpec: no key".postln;
 			synthSpecs = this.specs;
 			haloSpecs = super.getSpec;
 			// Halo specs will override synth specs.
 			if (haloSpecs.notNil) {
 				synthSpecs.putAll(haloSpecs);
 			};
-			^synthSpecs.parent_(Spec.specs)
+			^synthSpecs
 		};
 
 		// always look in halo first:
 		foundSpec = super.getSpecFromHalo(key);
+		// "halo foundSpec: %\n".postf(foundSpec);
 		if (foundSpec.notNil) { ^foundSpec };
+
 
 		// if nothing in Halo, check in synthfunc metadata:
 		// requires recent SC3 version
 		if (this.respondsTo(\findFirstSpecFor)) {
 			foundSpec = this.findFirstSpecFor(key);
 		};
+		// "implicit foundSpec: %\n".postf(foundSpec);
 		// return if found, or look in global spec
-		^foundSpec ?? { key.asSpec }
+
+		foundSpec ?? {
+			foundSpec = Spec.specs[key];
+			// "global foundSpec: %\n".postf(foundSpec);
+
+		};
+		^foundSpec
 	}
 }

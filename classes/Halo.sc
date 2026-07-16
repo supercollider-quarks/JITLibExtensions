@@ -91,8 +91,8 @@ Halo : Library {
 	}
 	// for all objects, do global lookup
 	getSpec { |name|
-		var spec = this.getSpecFromHalo;
-		^spec ?? { name.asSpec }
+		var spec = this.getSpecFromHalo(name);
+		^spec ?? { Spec.specs[name] }
 	}
 
 	addTag { |name, weight = 1|
