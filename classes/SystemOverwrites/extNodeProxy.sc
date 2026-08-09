@@ -1,9 +1,9 @@
 /*
 why have NodeProxy:getSpec,
-and what is the preference order?
+and what is the order of precedence ?
 
 NodeProxy has two ways to define a spec for a given parameter name:
-implicitly in the synth function(s), as in
+// implicitly in the synth function(s), as in
 
 Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) });
 
@@ -64,7 +64,6 @@ or at least avoid also using addSpec for the same parameter name.
 		// if no key given, return a dict with all specs;
 		// combining synth specs and prioritized Halo specs.
 		if (key.isNil) {
-			// "getSpec: no key".postln;
 			synthSpecs = this.specs;
 			haloSpecs = super.getSpec;
 			// Halo specs will override synth specs.
@@ -88,11 +87,12 @@ or at least avoid also using addSpec for the same parameter name.
 		// "implicit foundSpec: %\n".postf(foundSpec);
 		// return if found, or look in global spec
 
+		// if still nothing found, look in global specs:
 		foundSpec ?? {
 			foundSpec = Spec.specs[key];
 			// "global foundSpec: %\n".postf(foundSpec);
-
 		};
+
 		^foundSpec
 	}
 }
