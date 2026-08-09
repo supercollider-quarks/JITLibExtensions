@@ -1,19 +1,35 @@
 title:: getSpec
 
-summary:: Using Specs for proxy parameters: getSpec, addSpec, and specs
+summary:: Using Specs for proxy (and object) parameters: getSpec, addSpec, and specs
 categories:: Guides
-related:: Classes/NodeProxy, Classes/PatternProxy, Classes/Halo, Classes/Object
+related:: Classes/ControlSpec, Classes/Object, Classes/Halo, Classes/NodeProxy, Classes/PatternProxy
 
-section:: Using Specs for proxy parameters: getSpec, addSpec, and specs
+section:: Using Specs for proxy parameters: getSpec, addSpec, getUni, setUni
 
 JITLib proxies like PatternProxy (and thus TaskProxy, Pdef, and Tdef)
 and NodeProxy/Ndef and other objects have numerical settings, for which
 defining a Spec is useful: a practical mininum, maximum and curve (warp).
 
-In the JITLibExtensions quark, addSpec and getSpec provide a general interface
-for proxies and all other objects that use .set methods for named parameters.
-This makes it easy to set and access ranges for parameters,
-e.g. for GUIs and other interfaces:
+SuperCollider has a global dictionary of specs for commonly used
+parameter names, which is accessible directly and with shortcuts:
+code::
+// the global dictionary
+Spec.specs;
+// has specs for these keys
+Spec.specs.keys(Array).sort;
+// and the shortcut is <key>.asSpec, e.g.
+\freq.asSpec
+::
+
+Storing specs globally is quick and convenient, and works well when the intention is that the same parameter names have the same range everywhere.
+But when working with many objects, one may accidentally re-use a globally existing spec name, define it to the desired range for the new object,
+and thus overwrite the range that spec had so far. This can be very confusing.
+Also, for proxy A one might want e.g. modFreq to have a range of [1, 10, \exp],
+while for  proxy B, modFreq should better be tuned to [3, 30, \exp].
+
+For such cases, in the JITLibExtensions quark, addSpec and getSpec allow storing   parameter ranges individually for proxies, and any other objects that use .set methods for named parameters.
+
+This makes it easy to set, access, and finetune specific ranges for the parameters of a single process, e.g. for GUIs and other interfaces:
 
 code::
 Tdef(\x).set(\myfreq, 345);
@@ -21,32 +37,47 @@ Tdef(\x).addSpec(\myfreq, [30, 3000, \exp]);
 Tdef(\x).gui; // gui uses myfreq spec automatically
 // specs are accessed with:
 Tdef(\x).getSpec(\myfreq);
-// or this gets a dict with all known specs
+// or this gets a dict with all known specs of the object
 Tdef(\x).getSpec;
 // when you change a spec later to tune it,
 // the gui immediately uses it.
 Tdef(\x).addSpec(\myfreq, [50, 5000, \exp]);
+
 // specs are also used for setting params with unipolar values:
 Tdef(\x).setUni(\myfreq, 0.5); // center of range is 500
 Tdef(\x).getUni(\myfreq);
 // this guarantees that values stay within the range,
-// and is easy to use with controllers, e.g. hardware sliders.
+// and it is easy to use with controllers, e.g. sliders.
+
+// When using spec names that exist in Spec.specs,
+// object.getSpec will use these as fallback:
+a = Tdef(\x).getSpec(\amp).postln;
+a == \amp.asSpec; // identical
+
+// tell Tdef x to use a different, specific spec for \amp:
+Tdef(\x).addSpec(\amp, [0, 0.25, \amp]);
+a = Tdef(\x).getSpec(\amp);
+a == \amp.asSpec; // different
 ::
+
+
+subsection:: Using Specs for NodeProxy and Ndef: getSpec, addSpec, and specs
 
 For historical reasons, NodeProxy (and Ndef) has two ways to define a spec for a given parameter name:
 
 code::
-// by implicit spec in the synth function(s), as in
+// implicit by giving a spec in the synth function(s), as in
 Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) })
 
-// and using JITLibExtensions, explicitly by addSpec.
+// explicitly by using addSpec:
 Ndef(\x).addSpec(\freqx, [3, 300, \exp])
 ::
 
-As the specs for the same parameter name can be different in these two places, it is necessary to decide which one will be used. In JITLibExtensions, code::addSpec / Halo:: gets priority over implicit specs; so if nothing is found in the code::Halo::, then we look in code::proxy.specs::.
+There can be a spec for the same parameter name in these two places, they can be different, so it is necessary to decide which one will be used by priority. In JITLibExtensions, code::addSpec / Halo:: gets priority over implicit specs; so if nothing is found in the code::Halo::, then we look in code::proxy.specs::,
+and then we look in Spec.specs.
 
 This precedence is useful for tuning specs while the sound continues:
-once a good spec is found, one can place it back in the synth func.
+Once a good spec is found, one can place it back in the synth func.
 If you always prefer to use implicit specs, just use implicit specs only,
 or at least avoid also using addSpec for the same parameter name.
 
@@ -62,7 +93,7 @@ Ndef(\x, { Pulse.ar(\freqx.kr(200, spec: [3, 300, \exp])) * 0.1 });
 Ndef(\x).specs;
 // findFirstSpecFor should find it too
 Ndef(\x).findFirstSpecFor(\freqx);
-// and getSpec finds it
+// and getSpec finds it as well
 Ndef(\x).getSpec(\freqx);
 
 Ndef(\x).addSpec(\ampx, \amp);
@@ -72,12 +103,36 @@ Ndef(\x).getSpec; // gets both synth specs and halo specs
 // use addSpec to set ranges: the newly added explicit spec is used
 Ndef(\x).addSpec(\freqx, [5, 500, \exp]);
 Ndef(\x).getSpec(\freqx);
-Ndef(\x).getSpec
+Ndef(\x).getSpec;
 
 // when we remove the explicit spec again ..
 Ndef(\x).addSpec(\freqx, nil);
 // we see the implicit one again.
 Ndef(\x).getSpec(\freqx);
+
+Ndef(\x).getSpec
+::
+
+subsection:: Test precedence with a global spec being present:
+
+code::
+Ndef(\x).getSpec(\freq); // finds global spec
+\freq.asSpec;            // same global spec
+
+// Implicit overrides global;
+Ndef(\x, { \freq.kr(50, spec: [30, 300, \exp]) });
+Ndef(\x).specs[\freq]; // finds implicit
+Ndef(\x).getSpec(\freq); // finds implicit
+
+
+// Explicit addSpec overrides global and implicit;
+Ndef(\x).addSpec(\freq, [50, 5000, \exp]);
+Ndef(\x).getSpec(\freq); // finds explicit
+
+// remove explicit spec:
+Ndef(\x).addSpec(\freq, nil);
+Ndef(\x).getSpec; // finds implicit;
+
 
 // test that getSpec also works in NdefPreset:
 Ndef(\tst, { SinOsc.ar(\freqsin.kr(400, spec: \freq)) }).gui;
